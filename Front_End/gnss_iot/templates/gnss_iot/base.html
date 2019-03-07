@@ -1,0 +1,53 @@
+{% load bootstrap4 %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Gnss Iot</title>
+
+    
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+    
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+</head>
+<body>
+
+<!--Static navbar-->
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <a class="navbar-brand" href="{% url 'gnss_iot:index' %}">Gnss Iot</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse d-flex justify-content-end " id="navbarNavDropdown">
+    
+    <ul class="nav nabar-nav ">
+            {% if user.is_authenticated %}
+
+            <li class="nav-item active">
+                <a class="nav-link" >{{user.username|title}}</a>
+            </li>
+            <li>
+                <a class="nav-link" href="{% url 'user:logout' %}">Sair</a>
+            </li>
+
+            {% else %}
+                    <li><a class="nav-link" href="{% url 'user:register' %}">Registrar </a></li>
+                    <li><a class="nav-link" href="{% url 'user:login' %}">Entrar</a></li>
+            {% endif %}
+    </ul>
+  </div>
+</nav>
+
+    <div class="container div_principal" >
+        {% block content %}
+        {% endblock content %}
+    </div>
+</body>
+</html>

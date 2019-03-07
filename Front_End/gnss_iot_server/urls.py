@@ -14,8 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from django import forms
+from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', include(('gnss_iot.urls', 'gnss_iot'), namespace='gnss_iot')),
+    path('user/', include(('user.urls', 'user'), namespace='user')),
 ]
