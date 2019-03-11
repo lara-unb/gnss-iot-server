@@ -1,4 +1,8 @@
-.div_principal{
-    
-    padding: 20px
+.div_principal {
+    padding: 10px;
+}
+
+.div_header {
+    text-align: center;
+    padding: 10px;
 }

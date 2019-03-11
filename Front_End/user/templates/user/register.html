@@ -1,18 +1,28 @@
 {% extends 'gnss_iot/base.html' %}
 {% load bootstrap4 %}
 
+
+{% block header %}
+
+    <h1>Criar uma conta</h1>
+     <hr/>
+{% endblock header %}
+
+
 {% block content %}
 
 
 <form method="post" action="{% url 'user:register' %} " class="form" >
     {% csrf_token %}
     {% bootstrap_form form layout='inline'%}
+    {% if form.errors %}
+        {% bootstrap_messages  form.email.help_text %}
+    {% endif %}
 
     {% buttons %}
     <button class="btn btn-success" name = "submit"> registrar </button>
     {% endbuttons %}
     <input type="hidden"  name="next" value="{% url 'gnss_iot:index' %}"/>
-
 </form>
 
 {% endblock content %}

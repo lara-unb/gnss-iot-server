@@ -45,9 +45,17 @@
   </div>
 </nav>
 
+    
+    <div class="container div_header " >
+        {% block header %}
+
+        {% endblock header %}
+    </div>
+
     <div class="container div_principal" >
         {% block content %}
         {% endblock content %}
     </div>
+
 </body>
 </html>

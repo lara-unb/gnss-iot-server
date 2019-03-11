@@ -1,6 +1,15 @@
 {% extends 'gnss_iot/base.html' %}
 {% load bootstrap4 %}
+
+{% block header %}
+    <h1>Login</h1>
+    <hr/>
+{% endblock header %}
+
 {% block content %}
+
+
+
     {% if form.errors  %}
     <p>Your username and password didn't match. Please try again.</p>
     {% endif %}
@@ -8,7 +17,7 @@
 
 <form method="post" action="{% url 'user:login' %} " class="form" >
     {% csrf_token %}
-    {% bootstrap_form form %}
+    {% bootstrap_form form layout='inline'%}
 
     {% buttons %}
     <button class="btn btn-success" name = "submit"> Entrar </button>
