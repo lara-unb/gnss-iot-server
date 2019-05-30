@@ -1,9 +1,0 @@
-Projeto Gnss Iot
-
-[OK] - Versão mínima funcional do Sistema de Cadastro
-[  ] - Dashboard do Admin
-     |[  ] ->  Informações do receptor;
-     |[  ] ->  Informações do servidor;
-     |[  ] ->  Informações dos satélites;
-     |[  ] ->  Série histórica de posicionamento dos clientes em mapa;
-     |[  ] ->  Status sobre os algoritmos de aumento de precisão.
