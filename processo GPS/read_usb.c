@@ -8,21 +8,21 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> /* String function definitions */
-#include <fcntl.h>  /* File Control Definitions          */
-#include <termios.h>/* POSIX Terminal Control Definitions*/
-#include <unistd.h> /* UNIX Standard Definitions         */
-#include <errno.h>  /* ERROR Number Definitions          */
+#include <string.h> 
+#include <fcntl.h>  
+#include <termios.h>
+#include <unistd.h> 
+#include <errno.h>  
 
 #define SIZE_BUFFER 128
 
-int abrir_porta(int argc, char const *argv[]);
+int open_port(int argc, char const *argv[]);
 
-void ler_dados(int fd);
-void configuracaoPortaSerial();
+void read_data(int fd);
+void settings_port();
 void write_data(char data);
 
-int abrir_porta(int argc, char const *argv[])
+int open_port(int argc, char const *argv[])
 {
 
   int fd;
@@ -52,7 +52,7 @@ int abrir_porta(int argc, char const *argv[])
   return fd;
 }
 
-void ler_dados(int fd)
+void read_data(int fd)
 {
 
   tcflush(fd, TCIFLUSH);
@@ -61,7 +61,7 @@ void ler_dados(int fd)
   int i;
 
   bytes_read = read(fd, &read_buffer, sizeof(read_buffer));
-  printf("\n  Bytes recebidos: %d", bytes_read);
+  printf("\nBytes recebidos: %d", bytes_read);
   printf("\n");
 
   for (i = 0; i < bytes_read; i++)
@@ -70,7 +70,7 @@ void ler_dados(int fd)
     write_data(read_buffer[i]);
   }
 }
-void configuracaoPortaSerial(int fd)
+void settings_port(int fd)
 {
 
   struct termios ConfigPortaSerial;
@@ -118,12 +118,12 @@ int main(int argc, char const *argv[])
 {
   int fd;
 
-  fd = abrir_porta(argc, argv);
-  configuracaoPortaSerial(fd);
+  fd = open_port(argc, argv);
+  settings_port(fd);
 
   while (1)
   {
-    ler_dados(fd);
+    read_data(fd);
   }
 
   close(fd);

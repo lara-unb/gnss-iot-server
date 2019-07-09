@@ -20,14 +20,19 @@ def write_data(data):
 
 def available_port():
 
-    print('[*] Please, choose a serial port !\n')
+    print('\n[*] Please, choose a serial port:')
     ports = serial.tools.list_ports.comports()
 
-    for port in ports:
-        print(port)
-    print()
-    answer = input("Port: ")
-    return answer
+    if ports:
+        for port in ports:
+            print(port)
+        
+        answer = input("Port: ")
+        return answer
+    
+    else:
+        print('--> No ports available !\n')
+        exit(1)
 
 
 def open_port(port):
