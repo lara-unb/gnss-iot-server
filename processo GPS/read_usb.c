@@ -14,13 +14,46 @@
 #include <unistd.h> 
 #include <errno.h>  
 
-#define SIZE_BUFFER 128
+#define SIZE_BUFFER 10000
 
 int open_port(int argc, char const *argv[]);
 
-void read_data(int fd);
+int read_data(int fd);
 void settings_port();
 void write_data(char data);
+int kbhit(void);
+
+int kbhit(void)
+{
+  struct termios oldt, newt;
+  int ch;
+  int oldf;
+  
+  tcgetattr(STDIN_FILENO, &oldt);
+  newt = oldt;
+  newt.c_lflag &= ~(ICANON | ECHO);
+  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+ 
+  // Eis a diferença essenaial entre este código e o
+  // de getch().
+  oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+  fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+  
+  ch = getchar();
+  
+  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+  fcntl(STDIN_FILENO, F_SETFL, oldf);
+  
+  // Se getchar() conseguiu ler uma tecla,
+  // a deveolve para STDIN...
+  if (ch != EOF)
+  {
+    ungetc(ch, stdin);
+    return 1;
+  }
+  
+  return 0;
+}
 
 int open_port(int argc, char const *argv[])
 {
@@ -52,7 +85,7 @@ int open_port(int argc, char const *argv[])
   return fd;
 }
 
-void read_data(int fd)
+int read_data(int fd)
 {
 
   tcflush(fd, TCIFLUSH);
@@ -69,7 +102,10 @@ void read_data(int fd)
     printf("%c", read_buffer[i]);
     write_data(read_buffer[i]);
   }
+
+return bytes_read;
 }
+
 void settings_port(int fd)
 {
 
@@ -117,14 +153,20 @@ void write_data(char data)
 int main(int argc, char const *argv[])
 {
   int fd;
+  int maiorByte = 0;
+  int byteLido = 0;
 
   fd = open_port(argc, argv);
   settings_port(fd);
 
-  while (1)
+  while (kbhit()!=1)
   {
-    read_data(fd);
+    byteLido = read_data(fd);
+    if (maiorByte<byteLido){
+	maiorByte = byteLido;
+	}
   }
+  printf("\n\n Maior mensagem lida: %d \n\n", maiorByte);
 
   close(fd);
   return 0;
