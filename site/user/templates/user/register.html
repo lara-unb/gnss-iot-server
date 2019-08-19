@@ -12,7 +12,7 @@
                     <div class="card-body">
                         <h5 class="card-title text-center">Register </h5>
 
-                        <form method="post" action="{% url 'user:register' %} " class="form-signin">
+                        <form method="post" action="{% url 'user:register' %}" class="form-signin">
                             {% csrf_token %} {% bootstrap_form form layout='inline'%} {% buttons %}
                             <button class="btn btn-lg btn-primary btn-block text-uppercase" name="submit"> Register </button> {% endbuttons %}
                             <input type="hidden" name="next" value="{% url 'gnss_iot:index' %}" />
