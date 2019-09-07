@@ -49,34 +49,66 @@
                   </nav>
             
                   <div class="container-fluid">
-                    <h1 class="mt-4">Gnss Iot </h1>
-                    
-
-
+                    {% if devices %}
+                    <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                <th scope="col">Devices</th>
+                                <th scope="col">Token</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for device in devices %}
+                                <tr>
+                                <td>{{device.name}}</td>
+                                <td>{{device.token}}</td>
+                                <td>
+                                <a class="btn btn-primary stretched-link" href="{% url 'gnss_iot:delete_device' device.id %}">Delete</a>
+                                </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                    </table>
+                    {% else %}
+                        <div class="mx-auto" style="width: 200px;">
+                            <h1>No Device</h1>
+                        </div>
+                    {% endif %}
+                    <button type="button" class="btn btn-primary stretched-link" data-toggle="modal" data-target="#newDevice" data-whatever="@mdo">New Device</button>
+                
+                <!-- Form new device-->
+                <div class="modal fade" id="newDevice" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">New Device</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                       <form method="post" action="{% url 'gnss_iot:new_device' %}" class="form-signin">
+                        <div class="form-group">
+                        {% csrf_token %}
+                            <label for="name" class="col-form-label">Name:</label>
+                            <input type="text" class="form-control"  name="name" id="name">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" name="submit"> Create Device </button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    </div>
+                        </form>
+                    </div>
+                </div>
+                </div>
+                <!-- End Form new device-->  
                   </div>
                 </div>
                 <!-- /#page-content-wrapper -->
             
               </div>
               <!-- /#wrapper -->
-
-
-
-
-
-
-    {% comment %} <form action="{% url 'gnss_iot:send' %}" method="POST">
-    
-        {% csrf_token %}
-        <label for="entrada">Mensagem:</label>
-        <textarea name="entrada" id="entrada" cols="30" rows="10"></textarea>
-        <br>
-        <input type="radio" name="genre" value="rock" checked="checked" >Rock
-            <input type="radio" name="genre" value="jazz">Jazz
-            <input type="radio" name="genre" value="pop">Pop
-        <button class="btn btn-lg btn-primary btn-block text-uppercase" name="submit"> Enviar </button> 
-        
-    </form> {% endcomment %}
 
 
 </div>
@@ -86,6 +118,10 @@
         $("#menu-toggle").click(function(e) {
           e.preventDefault();
           $("#wrapper").toggleClass("toggled");
+        });
+
+        $('#myModal').on('shown.bs.modal', function () {
+        $('#myInput').trigger('focus')
         });
 </script>
 
