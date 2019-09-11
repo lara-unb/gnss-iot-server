@@ -9,10 +9,10 @@ class RegisterForm(UserCreationForm):
                              help_text='Required. Inform a valid email address.')
 
     name = forms.CharField(label="Name", required=True)
-
+ 
     class Meta:
         model = User
-        fields = ('username', 'name', 'email')
+        fields = ('username','name', 'email')
 
     def clean_email(self, *args, **kwargs):
         email = self.cleaned_data['email']

@@ -1,10 +1,20 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.models import User
-
+from gnss_iot_server.settings import HOST, PORT
 from .forms import RegisterForm
 
 # Create your views here.
+
+
+def login_view(request):
+    if request.method == 'POST':
+        authenticate_user = authenticate(username=request.POST['username'], password=request.POST['password'])
+        login(request, authenticate_user)
+
+        return redirect('gnss_iot:index')
+
+    return render(request, 'user/login.html')
 
 
 def logout_view(request):
@@ -15,7 +25,7 @@ def logout_view(request):
 def register(request):
     if request.method != 'POST':
         form = RegisterForm()
-        
+
     else:
         form = RegisterForm(data=request.POST)
 
