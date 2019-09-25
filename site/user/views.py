@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.models import User
-from gnss_iot_server.settings import HOST, PORT
 from .forms import RegisterForm
 
 # Create your views here.
