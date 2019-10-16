@@ -26,7 +26,7 @@ def available_port():
     if ports:
         for port in ports:
             print(port)
-        
+
         answer = input("Port: ")
         return answer
     
@@ -56,6 +56,6 @@ if __name__ == "__main__":
     SerialPort = open_port(port)
     while True:
         data = SerialPort.readline()
-        data = data.decode(encoding='utf-8', errors='strict') 
+        data = data.decode(encoding='utf-8', errors='strict')
         print(data)
         write_data(data)
