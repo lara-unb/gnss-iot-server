@@ -19,15 +19,15 @@
 #define FALSE 0
 #define PORT 8888
 
-int token_check(char token_recebido[33]);
+int token_check(char *token_recebido, int len);
 void settings_socket(struct sockaddr_in *address, int *master_socket);
 void bind_socket(struct sockaddr_in *address, int *master_socket);
 void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen);
 
-int token_check(char token_recebido[33])
+int token_check(char *token_recebido, int len)
 {
     FILE *fp;
-    char token_registrado[33];
+    char token_registrado[len];
     char *file_name = "tokens.txt";
 
     if ((fp = fopen(file_name, "r")) == NULL)
@@ -35,11 +35,11 @@ int token_check(char token_recebido[33])
         printf("Arquivo não pode ser aberto\n");
         exit(EXIT_FAILURE);
     }
-    while (fgets(token_registrado, 33, fp) != NULL)
+    while (fgets(token_registrado, 100, fp) != NULL)
     {
-
         if (!(strcmp(token_registrado, token_recebido)))
         {
+            fclose(fp);
             return ACESSO_PERMITIDO;
         }
     }
@@ -97,7 +97,6 @@ void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen
     *addrlen = sizeof(*address);
     puts("Waiting for connections ...");
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -217,9 +216,15 @@ int main(int argc, char *argv[])
                 /*Echo back the message that came in*/
                 else
                 {
+                    buffer[valread] = '\0';
+
+                    if (token_check(buffer, 33))
+                        printf("Acesso permito\n");
+                    else
+                        printf("Acesso negado\n");
+
                     /*set the string terminating NULL byte on the end*/
                     /*of the data read*/
-                    buffer[valread] = '\0';
                     send(sd, buffer, strlen(buffer), 0);
                 }
             }
