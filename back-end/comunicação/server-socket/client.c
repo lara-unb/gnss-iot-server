@@ -4,14 +4,20 @@
 #include <unistd.h>
 #include <string.h>
 
+#define ACESSO_PERMITIDO 1
+#define ACESSO_NEGADO 0
+
 #define PORT 8888
 
 int main(int argc, char const *argv[])
 {
     int sock = 0, valread;
-    struct sockaddr_in serv_addr;
+    int acesso;
+    double coord[2] = {44, 66};
     char *message = "984B32AD3F4501E8A653DF4B83F8272D";
     char buffer[1024] = {0};
+    struct sockaddr_in serv_addr;
+
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         printf("\n Socket creation error \n");
@@ -36,9 +42,15 @@ int main(int argc, char const *argv[])
 
     valread = read(sock, buffer, 1024);
     printf("%s\n", buffer);
-    printf("%ld\n", sizeof(message));
-    printf("%ld\n", strlen(message));
     send(sock, message, strlen(message), 0);
+    printf("%s\n", message);
+    read(sock, &acesso, sizeof(acesso));
+
+    send(sock, coord, sizeof(coord), 0);
+    read(sock, coord, sizeof(coord));
+
+    printf("%lf\n", coord[0]);
+    printf("%lf\n", coord[1]);
 
     close(sock);
 
