@@ -35,8 +35,9 @@ int token_check(char *token_recebido, int len)
         printf("Arquivo não pode ser aberto\n");
         exit(EXIT_FAILURE);
     }
-    while (fgets(token_registrado, 100, fp) != NULL)
+    while (fgets(token_registrado, len + 1, fp) != NULL)
     {
+        token_registrado[len] = '\0';
         if (!(strcmp(token_registrado, token_recebido)))
         {
             fclose(fp);
@@ -217,8 +218,7 @@ int main(int argc, char *argv[])
                 else
                 {
                     buffer[valread] = '\0';
-
-                    if (token_check(buffer, 33))
+                    if (token_check(buffer, valread))
                         printf("Acesso permito\n");
                     else
                         printf("Acesso negado\n");
