@@ -1,7 +1,7 @@
 
 from secrets import token_hex
-import  os
-from gnss_iot_server.settings import  BASE_DIR
+import os
+from gnss_iot_server.settings import BASE_DIR
 from django.shortcuts import render, redirect, reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth.models import User
@@ -58,5 +58,4 @@ def save_token(user_token):
     file = os.path.join(BASE_DIR, 'tokens.txt')
     print(type(user_token))
     with open(file, 'a') as file_object:
-        file_object.write(user_token)
-
+        file_object.write(user_token + '\n')

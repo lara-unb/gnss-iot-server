@@ -12,22 +12,33 @@
 #include <netinet/in.h>
 #include <sys/time.h> /*FD_SET, FD_ISSET, FD_ZERO macros*/
 
-#define ACESSO_PERMITIDO 1
-#define ACESSO_NEGADO 0
+const int ACESSO_PERMITIDO = 1;
+const int ACESSO_NEGADO = 0;
+
+#define MAX_CLIENT 30
 
 #define TRUE 1
 #define FALSE 0
 #define PORT 8888
 
-int token_check(char token_recebido[33]);
+typedef struct
+{
+    char *token;
+    int file_description;
+    int autenticacao;
+    double coord[2];
+} device_t;
+
+int token_check(char *token_recebido, int len);
+void serialize(char buffer, int len, device_t device);
 void settings_socket(struct sockaddr_in *address, int *master_socket);
 void bind_socket(struct sockaddr_in *address, int *master_socket);
 void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen);
 
-int token_check(char token_recebido[33])
+int token_check(char *token_recebido, int len)
 {
     FILE *fp;
-    char token_registrado[33];
+    char token_registrado[len];
     char *file_name = "tokens.txt";
 
     if ((fp = fopen(file_name, "r")) == NULL)
@@ -35,17 +46,22 @@ int token_check(char token_recebido[33])
         printf("Arquivo não pode ser aberto\n");
         exit(EXIT_FAILURE);
     }
-    while (fgets(token_registrado, 33, fp) != NULL)
+    while (fgets(token_registrado, len + 1, fp) != NULL)
     {
-
+        token_registrado[len] = '\0';
         if (!(strcmp(token_registrado, token_recebido)))
         {
+            fclose(fp);
             return ACESSO_PERMITIDO;
         }
     }
 
     fclose(fp);
     return ACESSO_NEGADO;
+}
+
+void serialize(char buffer, int len, device_t device)
+{
 }
 
 void settings_socket(struct sockaddr_in *address, int *master_socket)
@@ -98,25 +114,27 @@ void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen
     puts("Waiting for connections ...");
 }
 
-
 int main(int argc, char *argv[])
 {
     int master_socket, addrlen, new_socket;
     int activity, i, valread, sd, max_sd;
-    int client_socket[30], max_clients = 30;
+    int client_socket[MAX_CLIENT];
+    char buffer[1025];
+
     struct sockaddr_in address;
-    char buffer[1025]; /*data buffer of 1K*/
+    device_t devices[MAX_CLIENT];
 
     /*set of socket descriptors*/
     fd_set readfds;
 
     /*a message*/
-    char *message = "ECHO Daemon v1.0 \r\n";
+    char *message = "Servidor GNSS - LARA  v1.0 \r\n";
 
     /*initialise all client_socket[] to 0 so not checked*/
-    for (i = 0; i < max_clients; i++)
+    for (i = 0; i < MAX_CLIENT; i++)
     {
         client_socket[i] = 0;
+        devices[i].autenticacao = ACESSO_NEGADO;
     }
 
     settings_socket(&address, &master_socket);
@@ -133,7 +151,7 @@ int main(int argc, char *argv[])
         max_sd = master_socket;
 
         /*add child sockets to set*/
-        for (i = 0; i < max_clients; i++)
+        for (i = 0; i < MAX_CLIENT; i++)
         {
             /*socket descriptor*/
             sd = client_socket[i];
@@ -179,7 +197,7 @@ int main(int argc, char *argv[])
             puts("Welcome message sent successfully");
 
             /*add new socket to array of sockets*/
-            for (i = 0; i < max_clients; i++)
+            for (i = 0; i < MAX_CLIENT; i++)
             {
                 /*if position is empty*/
                 if (client_socket[i] == 0)
@@ -193,7 +211,7 @@ int main(int argc, char *argv[])
         }
 
         /*else its some IO operation on some other socket*/
-        for (i = 0; i < max_clients; i++)
+        for (i = 0; i < MAX_CLIENT; i++)
         {
             sd = client_socket[i];
 
@@ -201,26 +219,49 @@ int main(int argc, char *argv[])
             {
                 /*Check if it was for closing , and also read the*/
                 /*incoming message*/
-                if ((valread = read(sd, buffer, 1024)) == 0)
+
+                if (devices[i].autenticacao)
                 {
-                    /*Somebody disconnected , get his details and print*/
-                    getpeername(sd, (struct sockaddr *)&address,
-                                (socklen_t *)&addrlen);
-                    printf("Host disconnected , ip %s , port %d \n",
-                           inet_ntoa(address.sin_addr), ntohs(address.sin_port));
-
-                    /*Close the socket and mark as 0 in list for reuse*/
-                    close(sd);
-                    client_socket[i] = 0;
+                    if ((read(sd, devices[i].coord, sizeof(devices[i].coord))) != 0)
+                    {
+                        devices[i].coord[0]++;
+                        devices[i].coord[1]++;
+                        printf("%d\n", devices[i].file_description);
+                        send(sd, devices[i].coord, sizeof(devices[i].coord), 0);
+                    }
+                    else
+                    {
+                        getpeername(sd, (struct sockaddr *)&address,
+                                    (socklen_t *)&addrlen);
+                        printf("Host disconnected , ip %s , port %d \n",
+                               inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+                        close(sd);
+                        client_socket[i] = 0;
+                        devices[i].token = '\0';
+                        devices[i].autenticacao = 0;
+                    }
                 }
-
-                /*Echo back the message that came in*/
                 else
                 {
-                    /*set the string terminating NULL byte on the end*/
-                    /*of the data read*/
+
+                    valread = read(sd, buffer, 1024);
+
                     buffer[valread] = '\0';
-                    send(sd, buffer, strlen(buffer), 0);
+                    if (token_check(buffer, valread))
+                    {
+                        printf("Acesso permitido\n");
+                        send(sd, &ACESSO_PERMITIDO, sizeof(ACESSO_PERMITIDO), 0);
+                        devices[i].file_description = sd;
+                        devices[i].token = buffer;
+                        devices[i].autenticacao = ACESSO_PERMITIDO;
+                    }
+                    else
+                    {
+                        printf("Acesso negado\n");
+                        send(sd, &ACESSO_NEGADO, sizeof(ACESSO_NEGADO), 0);
+                        close(sd);
+                        client_socket[i] = 0;
+                    }
                 }
             }
         }
