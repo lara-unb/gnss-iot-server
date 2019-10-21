@@ -122,14 +122,13 @@ int main(int argc, char *argv[])
     char buffer[1025];
 
     struct sockaddr_in address;
-
     device_t devices[MAX_CLIENT];
 
     /*set of socket descriptors*/
     fd_set readfds;
 
     /*a message*/
-    char *message = "ECHO Daemon v1.0 \r\n";
+    char *message = "Servidor GNSS - LARA  v1.0 \r\n";
 
     /*initialise all client_socket[] to 0 so not checked*/
     for (i = 0; i < MAX_CLIENT; i++)
@@ -227,6 +226,7 @@ int main(int argc, char *argv[])
                     {
                         devices[i].coord[0]++;
                         devices[i].coord[1]++;
+                        printf("%d\n", devices[i].file_description);
                         send(sd, devices[i].coord, sizeof(devices[i].coord), 0);
                     }
                     else
@@ -237,6 +237,7 @@ int main(int argc, char *argv[])
                                inet_ntoa(address.sin_addr), ntohs(address.sin_port));
                         close(sd);
                         client_socket[i] = 0;
+                        devices[i].token = '\0';
                         devices[i].autenticacao = 0;
                     }
                 }
