@@ -8,7 +8,7 @@ class Device(models.Model):
     # coord_x =models.IntegerField()
     # coord_y =models.IntegerField()
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    token = models.TextField(max_length=20)
+    token = models.TextField()
 
     def __str__(self):
         return self.name

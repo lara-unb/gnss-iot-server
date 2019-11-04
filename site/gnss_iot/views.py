@@ -8,6 +8,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from .forms import DeviceForm
 from .models import Device
+
+
 # Create your views here.
 
 
@@ -35,6 +37,15 @@ def delete_device(request, device_id):
     device = Device.objects.filter(id=device_id)
     device.delete()
     return redirect('gnss_iot:devices')
+
+
+def detail_device(request, device_id):
+    device = Device.objects.filter(id=device_id)
+    for item in device:
+        dados = get_data(item.token)
+    print(dados)
+    context = {'dados': dados}
+    return render(request, 'gnss_iot/detail_device.html', context=context)
 
 
 def edit_device(request, device_id):
