@@ -1,4 +1,5 @@
 import time
+import datetime
 import pynmea2
 import serial
 import pandas as pd
@@ -6,35 +7,47 @@ import pandas as pd
 file_path = '../../DATA/EXP1/IOT/logfile.txt'
 
 def read2df(filename):
-    iot_data = {'time':[], 'latitude':[], 'latitude direction':[], 'longitude':[], 'longitude direction ':[], 'quality':[], 'in use':[], 'antenna alt':[], #GGA
+    iot_data = {'time':[datetime("00:00:00").time()], 'latitude':[0], 'latitude direction':['S'], 'longitude':[0], 'longitude direction ':['W'], 'quality':[0], 'in use':[0], 'antenna alt':[0], #GGA
             # GLL
-            'DOP':[], 'HDOP':[], 'VDOP':[], #GSA
+            'DOP':[0], 'HDOP':[0], 'VDOP':[0], #GSA
             #RMC
-            'speed kmh':[], #VTG
-            'date':[] #ZDA
-            
+            'speed kmh':[0], #VTG
+            'date':[datetime("0".date())] #ZDA
             }
-    
+
     sat_data = { 'time':[], #GGA
             'PRN':[], #GSA
             'elevation':[], 'azimuth':[], 'SRN':[] # GSV
             }
-    
-    iot_df = pd.DataFrame(iot_data)
-    sat_df = pd.DataFrame(sat_data)
-    
-    
+
+    iot_df = pd.DataFrame(data=iot_data).set_index('time')
+    sat_df = pd.DataFrame(data=sat_data).set_index(['time','PRN'])
+
     f = open(filename)
     reader = pynmea2.NMEAStreamReader(f)
-    
-    time = 0 #update on the go
+
+    #time - update on the go
     i=0
-    while i<30:
+    while i<100:
         for msg in reader.next():
+
             msg_type = msg.sentence_type
+
             if msg_type == 'GGA':
-                pass
-                #print('gga')
+                time = msg.timestamp
+                if time not in iot_df.index:
+
+                    print(time)
+                    iot_df.append(pd.Series(name=time), ignore_index=False)
+                    print(iot_df)
+
+                iot_df[time]['latitude']=msg.lat
+                iot_df[time]['latitude direction']=msg.lat_dir
+                iot_df[time]['longitude']=msg.lon
+                iot_df[time]['longitude direction']=msg.lon_dir
+                iot_df[time]['quality']=msg.gps_qual
+                iot_df[time]['in use']=msg.num_sats
+                iot_df[time]['antenna alt']=msg.altitude
             elif msg_type == 'GLL':
                 pass
                 #print('gll')
@@ -59,11 +72,11 @@ def read2df(filename):
             else:
                 pass
                 #print(msg_type)
-                
+
         i += 1
-    
+
     f.close()
-    return df
+    return iot_df, sat_df
 
 
 def read_serial(filename):
@@ -84,4 +97,5 @@ def read_serial(filename):
         for msg in reader.next(data):
           print(msg)
 
-df = read2df(file_path)
+iot_df, sat_df = read2df(file_path)
+print(iot_df)
