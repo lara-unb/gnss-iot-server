@@ -26,7 +26,7 @@ typedef struct
     char token[32];
     int file_description;
     int autenticacao;
-    double coord[2];
+    double coord[3];
 } device_t;
 
 int token_check(char *token_recebido, int len);
@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
             }
 
             /*inform user of socket number - used in send and receive commands*/
-            printf("New connection , socket fd is %d , ip is : %s , port : %d\n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+            printf("New connection, socket fd is %d, ip is : %s, port : %d\n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
             /*send new connection greeting message*/
             if (send(new_socket, message, strlen(message), 0) != strlen(message))
@@ -274,12 +274,13 @@ int main(int argc, char *argv[])
                 if (devices[i].autenticacao)
                 {
                     data_device = serialize_device(&devices[i]);
-                    if ((read(sd, binn_ptr(data_device), binn_size(data_device))) != 0)
+                    char buff[30];
+                    if ((read(sd, buff, sizeof (buff))) != 0)
                     {
-                        void *list = binn_object_list(data_device, "coord");
+                        char* pend;
 
-                        devices[i].coord[0] = binn_list_double(list, 1);
-                        devices[i].coord[1] = binn_list_double(list, 2);
+                        devices[i].coord[0] = strtod (buff, &pend);
+                        devices[i].coord[1] = strtod (pend, NULL);
                         devices[i].coord[0]++;
                         devices[i].coord[1]++;
                         printf("%lf %lf\n", devices[i].coord[0], devices[i].coord[1]);
@@ -291,14 +292,14 @@ int main(int argc, char *argv[])
                             data_server = serialize_server(&devices[i]);
                             send(server_fd, binn_ptr(data_server), binn_size(data_server), 0);
                         }
-                        send(sd, binn_ptr(data_device), binn_size(data_device), 0);
+                        sprintf(buff, "%.3f %.3f", devices[i].coord[0], devices[i].coord[1]);
+                        send(sd, buff, sizeof (buff), 0);
+                        // send(sd, binn_ptr(data_device), binn_size(data_device), 0);
                     }
                     else
                     {
-                        getpeername(sd, (struct sockaddr *)&address,
-                                    (socklen_t *)&addrlen);
-                        printf("Host disconnected , ip %s , port %d \n",
-                               inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+                        getpeername(sd, (struct sockaddr *)&address, (socklen_t *)&addrlen);
+                        printf("Host disconnected, ip %s, port %d \n", inet_ntoa(address.sin_addr), ntohs(address.sin_port));
                         close(sd);
                         client_socket[i] = 0;
 
