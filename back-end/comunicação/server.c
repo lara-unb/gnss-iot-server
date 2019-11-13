@@ -343,5 +343,8 @@ int main(int argc, char *argv[])
         }
     }
 
+    binn_free(data_device);
+    binn_free(data_server);
+
     return 0;
 }
