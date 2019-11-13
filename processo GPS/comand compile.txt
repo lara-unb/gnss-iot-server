@@ -1,0 +1,1 @@
+gcc -I ~/RTK/RTKLIB/src -I ~/RTK/RTKLIB/src/rcv ~/RTK/RTKLIB/src/*.c ~/RTK/RTKLIB/src/rcv/*.c -ansi -pedantic -DTRACE -DENAGLO -DENAQZS TCP_server_RTK.c -g -o TCP.o -lm -lpthread -lblas -llapack
