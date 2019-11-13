@@ -2,3 +2,7 @@
 __pycache__
 .vscode
 *.o
+server
+client
+client1
+client_1
