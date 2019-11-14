@@ -19,10 +19,18 @@ def read2df(filename):
             'PRN':[], #GSA
             'elevation':[], 'azimuth':[], 'SRN':[] # GSV
             }
+<<<<<<< HEAD
+    
+    iot_df = pd.DataFrame(iot_data).set_index('time')
+    sat_df = pd.DataFrame(sat_data).set_index('time')
+    
+    
+=======
 
     iot_df = pd.DataFrame(data=iot_data).set_index('time')
     sat_df = pd.DataFrame(data=sat_data).set_index(['time','PRN'])
 
+>>>>>>> 2a1b39d10b383de1eda05bac628cc58ebebcd34a
     f = open(filename)
     reader = pynmea2.NMEAStreamReader(f)
 
@@ -35,6 +43,13 @@ def read2df(filename):
 
             if msg_type == 'GGA':
                 time = msg.timestamp
+<<<<<<< HEAD
+                print(time)
+                sat_df = sat_df.append({'time':time}, ignore_index=True)
+                #sat_df.ix[time]=
+                print(sat_df)
+                #print('gga')
+=======
                 if time not in iot_df.index:
 
                     print(time)
@@ -48,6 +63,7 @@ def read2df(filename):
                 iot_df[time]['quality']=msg.gps_qual
                 iot_df[time]['in use']=msg.num_sats
                 iot_df[time]['antenna alt']=msg.altitude
+>>>>>>> 2a1b39d10b383de1eda05bac628cc58ebebcd34a
             elif msg_type == 'GLL':
                 pass
                 #print('gll')
@@ -98,4 +114,7 @@ def read_serial(filename):
           print(msg)
 
 iot_df, sat_df = read2df(file_path)
+<<<<<<< HEAD
+=======
 print(iot_df)
+>>>>>>> 2a1b39d10b383de1eda05bac628cc58ebebcd34a
