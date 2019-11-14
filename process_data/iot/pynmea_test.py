@@ -20,8 +20,8 @@ def read2df(filename):
             'elevation':[], 'azimuth':[], 'SRN':[] # GSV
             }
     
-    iot_df = pd.DataFrame(iot_data)
-    sat_df = pd.DataFrame(sat_data)
+    iot_df = pd.DataFrame(iot_data).set_index('time')
+    sat_df = pd.DataFrame(sat_data).set_index('time')
     
     
     f = open(filename)
@@ -33,7 +33,11 @@ def read2df(filename):
         for msg in reader.next():
             msg_type = msg.sentence_type
             if msg_type == 'GGA':
-                pass
+                time = msg.timestamp
+                print(time)
+                sat_df = sat_df.append({'time':time}, ignore_index=True)
+                #sat_df.ix[time]=
+                print(sat_df)
                 #print('gga')
             elif msg_type == 'GLL':
                 pass
@@ -63,7 +67,7 @@ def read2df(filename):
         i += 1
     
     f.close()
-    return df
+    return iot_df, sat_df
 
 
 def read_serial(filename):
@@ -84,4 +88,4 @@ def read_serial(filename):
         for msg in reader.next(data):
           print(msg)
 
-df = read2df(file_path)
+iot_df, sat_df = read2df(file_path)
