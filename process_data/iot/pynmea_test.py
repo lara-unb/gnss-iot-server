@@ -9,7 +9,7 @@ file_path = '../../DATA/EXP1/IOT/logfile.txt'
 def read2df(filename):
     iot_data = {'time':[], 'latitude':[], 'latitude direction':[], 'longitude':[], 'longitude direction':[], 'quality':[], 'in use':[], 'antenna alt':[], #GGA
             # GLL
-            'DOP':[], 'HDOP':[], 'VDOP':[], #GSA
+            'PDOP':[], 'HDOP':[], 'VDOP':[], #GSA
             #RMC
             'speed kmh':[], #VTG
             'date':[] #ZDA
@@ -22,6 +22,10 @@ def read2df(filename):
     
     iot_df = pd.DataFrame(iot_data)
     sat_df = pd.DataFrame(sat_data)
+    
+    iot_df['latitude direction'] = iot_df['latitude direction'].astype('str')
+    iot_df['longitude direction'] = iot_df['longitude direction'].astype('str')
+    iot_df['date'] = iot_df['date'].astype('str')
     
 
     f = open(filename)
@@ -36,20 +40,10 @@ def read2df(filename):
 
             if msg_type == 'GGA':
                 time = msg.timestamp
-
-                
-                
                 if time not in iot_df['time'].values:
                     iot_df = iot_df.append({'time':time}, ignore_index=True)
-                
-                
-                iot_df['latitude direction'] = iot_df['latitude direction'].astype('str')
-                iot_df['longitude direction'] = iot_df['longitude direction'].astype('str')
-
                 time_idx = iot_df[iot_df['time'] == time].index.values.astype(int)[0]
-                
-                
-                print(msg.lon_dir)
+                       
                 iot_df.at[time_idx, 'latitude']=msg.lat
                 iot_df.at[time_idx, 'latitude direction']=msg.lat_dir
                 iot_df.at[time_idx, 'longitude']=msg.lon
@@ -62,7 +56,9 @@ def read2df(filename):
                 pass
                 #print('gll')
             elif msg_type == 'GSA':
-                pass
+                iot_df.at[time_idx, 'PDOP']=msg.pdop
+                iot_df.at[time_idx, 'HDOP']=msg.hdop
+                iot_df.at[time_idx, 'VDOP']=msg.vdop
                 #print('gsa')
             elif msg_type == 'GSV':
                 pass
@@ -71,10 +67,15 @@ def read2df(filename):
                 pass
                 #print('rmc')
             elif msg_type == 'VTG':
-                pass
+                iot_df.at[time_idx, 'speed kmh']=msg.spd_over_grnd_kmph
                 #print('vtg')
             elif msg_type == 'ZDA':
-                pass
+                time = msg.timestamp
+                if time not in iot_df['time'].values:
+                    iot_df = iot_df.append({'time':time}, ignore_index=True)
+                time_idx = iot_df[iot_df['time'] == time].index.values.astype(int)[0]
+                
+                iot_df.at[time_idx, 'date']=str(msg.day)+'/'+str(msg.month)+'/'+str(msg.year)
                 #print('zda')
             elif msg_type == 'TXT':
                 pass
