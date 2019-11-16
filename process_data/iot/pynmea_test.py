@@ -33,32 +33,64 @@ def read2df(filename):
 
     #time - update on the go
     i=0
-    while i<300:
+    while i<4:
         for msg in reader.next():
 
             msg_type = msg.sentence_type
-
+            
             if msg_type == 'GGA':
                 time = msg.timestamp
                 if time not in iot_df['time'].values:
                     iot_df = iot_df.append({'time':time}, ignore_index=True)
-                time_idx = iot_df[iot_df['time'] == time].index.values.astype(int)[0]
+                iot_time_idx = iot_df[iot_df['time'] == time].index.values.astype(int)[0]
                        
-                iot_df.at[time_idx, 'latitude']=msg.lat
-                iot_df.at[time_idx, 'latitude direction']=msg.lat_dir
-                iot_df.at[time_idx, 'longitude']=msg.lon
-                iot_df.at[time_idx, 'longitude direction']=msg.lon_dir
-                iot_df.at[time_idx, 'quality']=msg.gps_qual
-                iot_df.at[time_idx, 'in use']=msg.num_sats
-                iot_df.at[time_idx, 'antenna alt']=msg.altitude
+                iot_df.at[iot_time_idx, 'latitude']=msg.lat
+                iot_df.at[iot_time_idx, 'latitude direction']=msg.lat_dir
+                iot_df.at[iot_time_idx, 'longitude']=msg.lon
+                iot_df.at[iot_time_idx, 'longitude direction']=msg.lon_dir
+                iot_df.at[iot_time_idx, 'quality']=msg.gps_qual
+                iot_df.at[iot_time_idx, 'in use']=msg.num_sats
+                iot_df.at[iot_time_idx, 'antenna alt']=msg.altitude
 
             elif msg_type == 'GLL':
                 pass
                 #print('gll')
             elif msg_type == 'GSA':
-                iot_df.at[time_idx, 'PDOP']=msg.pdop
-                iot_df.at[time_idx, 'HDOP']=msg.hdop
-                iot_df.at[time_idx, 'VDOP']=msg.vdop
+                iot_df.at[iot_time_idx, 'PDOP']=msg.pdop
+                iot_df.at[iot_time_idx, 'HDOP']=msg.hdop
+                iot_df.at[iot_time_idx, 'VDOP']=msg.vdop
+                
+                if msg.sv_id01:
+                    sat_df = sat_df.append({'time':time, 'PRN': msg.sv_id01}, ignore_index=True)
+                if msg.sv_id02:
+                    sat_df = sat_df.append({'time':time, 'PRN': msg.sv_id02}, ignore_index=True)
+                if msg.sv_id03:
+                    sat_df = sat_df.append({'time':time, 'PRN': msg.sv_id03}, ignore_index=True)
+                if msg.sv_id04:
+                    sat_df = sat_df.append({'time':time, 'PRN': msg.sv_id04}, ignore_index=True)
+                if msg.sv_id05:
+                    sat_df = sat_df.append({'time':time, 'PRN': msg.sv_id05}, ignore_index=True)
+                if msg.sv_id06:
+                    sat_df = sat_df.append({'time':time, 'PRN': msg.sv_id06}, ignore_index=True)
+                if msg.sv_id07:
+                    sat_df = sat_df.append({'time':time, 'PRN': msg.sv_id07}, ignore_index=True)
+                if msg.sv_id08:
+                    sat_df = sat_df.append({'time':time, 'PRN': msg.sv_id08}, ignore_index=True)
+                if msg.sv_id09:
+                    sat_df = sat_df.append({'time':time, 'PRN': msg.sv_id09}, ignore_index=True)
+                if msg.sv_id10:
+                    sat_df = sat_df.append({'time':time, 'PRN': msg.sv_id10}, ignore_index=True)
+                if msg.sv_id11:
+                    sat_df = sat_df.append({'time':time, 'PRN': msg.sv_id11}, ignore_index=True)
+                if msg.sv_id12:
+                    sat_df = sat_df.append({'time':time, 'PRN': msg.sv_id12}, ignore_index=True)
+                    
+
+                
+                #sat_time_idx = iot_df[iot_df['time'] == time].index.values.astype(int)[0]
+                
+                #sat_df.at[sat_time_idx, 'PRN']=msg.altitude
+                    
                 #print('gsa')
             elif msg_type == 'GSV':
                 pass
@@ -67,15 +99,15 @@ def read2df(filename):
                 pass
                 #print('rmc')
             elif msg_type == 'VTG':
-                iot_df.at[time_idx, 'speed kmh']=msg.spd_over_grnd_kmph
+                iot_df.at[iot_time_idx, 'speed kmh']=msg.spd_over_grnd_kmph
                 #print('vtg')
             elif msg_type == 'ZDA':
                 time = msg.timestamp
                 if time not in iot_df['time'].values:
                     iot_df = iot_df.append({'time':time}, ignore_index=True)
-                time_idx = iot_df[iot_df['time'] == time].index.values.astype(int)[0]
+                iot_time_idx = iot_df[iot_df['time'] == time].index.values.astype(int)[0]
                 
-                iot_df.at[time_idx, 'date']=str(msg.day)+'/'+str(msg.month)+'/'+str(msg.year)
+                iot_df.at[iot_time_idx, 'date']=str(msg.day)+'/'+str(msg.month)+'/'+str(msg.year)
                 #print('zda')
             elif msg_type == 'TXT':
                 pass
@@ -88,8 +120,8 @@ def read2df(filename):
 
     f.close()
     
-    #iot_df = iot_df.set_index('time')
-    #sat_df = sat_df.set_index('time')
+    iot_df = iot_df.set_index('time')
+    sat_df = sat_df.set_index('time','PRN')
     return iot_df, sat_df
 
 
@@ -112,4 +144,4 @@ def read_serial(filename):
           print(msg)
 
 iot_df, sat_df = read2df(file_path)
-#print(iot_df)
+print(sat_df)
