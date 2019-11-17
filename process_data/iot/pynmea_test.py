@@ -89,8 +89,7 @@ def read2df(filename):
                 if(msg.sv_id12):
                     sat_list.append(int(msg.sv_id12))
                 
-                if sat_list:
-                    iot_df.at[iot_time_idx, 'PRN in use'] = sat_list
+                iot_df.at[iot_time_idx, 'PRN in use'] = sat_list
 
 
             elif msg_type == 'GSV':
