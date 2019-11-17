@@ -65,39 +65,34 @@ def read2df(filename):
                 sat_list = []
                 
                 if(msg.sv_id01):
-                    sat_list.append(msg.sv_id01)
+                    sat_list.append(int(msg.sv_id01))
                 if(msg.sv_id02):
-                    sat_list.append(msg.sv_id02)
+                    sat_list.append(int(msg.sv_id02))
                 if(msg.sv_id03):
-                    sat_list.append(msg.sv_id03)
+                    sat_list.append(int(msg.sv_id03))
                 if(msg.sv_id04):
-                    sat_list.append(msg.sv_id04)
+                    sat_list.append(int(msg.sv_id04))
                 if(msg.sv_id05):
-                    sat_list.append(msg.sv_id05)
+                    sat_list.append(int(msg.sv_id05))
                 if(msg.sv_id06):
-                    sat_list.append(msg.sv_id06)
+                    sat_list.append(int(msg.sv_id06))
                 if(msg.sv_id07):
-                    sat_list.append(msg.sv_id07)
+                    sat_list.append(int(msg.sv_id07))
                 if(msg.sv_id08):
-                    sat_list.append(msg.sv_id08)
+                    sat_list.append(int(msg.sv_id08))
                 if(msg.sv_id09):
-                    sat_list.append(msg.sv_id09)
+                    sat_list.append(int(msg.sv_id09))
                 if(msg.sv_id10):
-                    sat_list.append(msg.sv_id10)
+                    sat_list.append(int(msg.sv_id10))
                 if(msg.sv_id11):
-                    sat_list.append(msg.sv_id11)
+                    sat_list.append(int(msg.sv_id11))
                 if(msg.sv_id12):
-                    sat_list.append(msg.sv_id12)
-                    
-                iot_df.at[iot_time_idx, 'PRN in use'] = sat_list
-                print(iot_df.at[iot_time_idx, 'PRN in use'])
-
-
-                #sat_time_idx = iot_df[iot_df['time'] == time].index.values.astype(int)[0]
+                    sat_list.append(int(msg.sv_id12))
                 
-                #sat_df.at[sat_time_idx, 'PRN']=msg.altitude
-                    
-                #print('gsa')
+                if sat_list:
+                    iot_df.at[iot_time_idx, 'PRN in use'] = sat_list
+
+
             elif msg_type == 'GSV':
                 
                 if msg.sv_prn_num_1:
