@@ -60,8 +60,8 @@
                             <tbody>
                             {% for device in devices %}
                                 <tr>
-                                <td>{{device.name}}</td>
-                                <td>{{device.token}}</td>
+                                <td> <a href="{% url 'gnss_iot:detail_device' device.id %}"> {{device.name}}</a> </td>
+                                <td>  {{device.token}}</td>
                                 <td>
                                 <a class="btn btn-primary stretched-link" href="{% url 'gnss_iot:delete_device' device.id %}">Delete</a>
                                 </td>

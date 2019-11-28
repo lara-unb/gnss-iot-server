@@ -11,6 +11,26 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import socket
+import pybinn
+
+HOST = '127.0.0.1'
+PORT = 8888
+TOKEN = 'TOKENSERVIDOR'
+
+# Configuração da conexão
+
+
+def create_connection():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((HOST, PORT))
+    sock.send(TOKEN.encode())
+    res = sock.recv(1024)
+    print(res.decode())
+    return sock
+
+
+sock = create_connection()
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -43,8 +63,10 @@ INSTALLED_APPS = [
     'gnss_iot',
     'user',
 
-    # Aplicações de Terceiros 
+    # Aplicações de Terceiros
     'bootstrap4',
+    'channels',
+    'leaflet',
 ]
 
 MIDDLEWARE = [
@@ -58,7 +80,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'gnss_iot_server.urls'
-
+ASGI_APPLICATION = "gnss_iot_server.routing.application"
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -129,7 +151,12 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
-] 
+]
 
-
-
+LEAFLET_CONFIG = {
+    # conf here
+    'DEFAULT_CENTER': (-15.765940453, -47.872187540),
+    'DEFAULT_ZOOM': 16,
+    'MIN_ZOOM': 3,
+    'MAX_ZOOM': 18,
+}

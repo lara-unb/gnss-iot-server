@@ -1,12 +1,13 @@
 {% load static %}
 {# Load the tag library #}
 {% load bootstrap4 %}
+{% load leaflet_tags %}
 {# Load CSS and JavaScript #}
 {% bootstrap_css %} 
 {% bootstrap_javascript jquery='full' %} 
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
@@ -16,6 +17,10 @@
 
     <link rel="stylesheet" href="{% static  'css/bootstrap4.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+        
+    {% leaflet_js %}
+    {% leaflet_css %}
     
 
 </head>
@@ -30,9 +35,7 @@
 
     <div class="" >
         <a class="navbar-brand " href= " {% url 'gnss_iot:index' %} ">
-            <i class="fas fa-globe-americas"></i>
-                    Gnss Iot
-         </a>
+            <i class="fas fa-globe-americas"></i>Gnss Iot</a>
 
     </div>
 
@@ -73,8 +76,6 @@
 </nav>
 {% endif %}
     {% block content %}
-
-
     {% endblock content %}
 
 </body>

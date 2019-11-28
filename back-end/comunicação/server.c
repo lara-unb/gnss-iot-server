@@ -38,7 +38,7 @@ void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen
 int token_check(char *token_recebido, int len)
 {
     FILE *fp;
-    char token_registrado[len];
+    char token_registrado[32];
     char *file_name = "tokens.txt";
 
     if (!(strcmp("TOKENSERVIDOR", token_recebido)))
@@ -52,9 +52,10 @@ int token_check(char *token_recebido, int len)
         printf("Arquivo não pode ser aberto\n");
         exit(EXIT_FAILURE);
     }
-    while (fgets(token_registrado, len + 1, fp) != NULL)
+    while (fgets(token_registrado, 33, fp) != NULL)
     {
-        token_registrado[len] = '\0';
+        token_registrado[32] = '\0';
+        
         if (!(strcmp(token_registrado, token_recebido)))
         {
             fclose(fp);

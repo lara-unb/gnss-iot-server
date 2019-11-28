@@ -41,10 +41,7 @@ def delete_device(request, device_id):
 
 def detail_device(request, device_id):
     device = Device.objects.filter(id=device_id)
-    for item in device:
-        dados = get_data(item.token)
-    print(dados)
-    context = {'dados': dados}
+    context = {'dados': device}
     return render(request, 'gnss_iot/detail_device.html', context=context)
 
 
