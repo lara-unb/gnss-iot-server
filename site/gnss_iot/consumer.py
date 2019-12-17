@@ -3,7 +3,7 @@ import json
 from django.contrib.auth import  get_user_model
 from channels.consumer import  AsyncConsumer,SyncConsumer
 from channels.db import database_sync_to_async
-from gnss_iot_server.sock_data import create_connection, get_data
+from gnss_iot_server.sock_data import create_connection, get_data, FAILURE_SOCK
 
 class GnssConsumer(SyncConsumer):
 
@@ -13,15 +13,15 @@ class GnssConsumer(SyncConsumer):
             "type":"websocket.accept"
         })
 
-        # sock = create_connection()
-
-        while True:
-            # data = get_data(sock)
-            data = 'HI'
-            self.send({
-                "type":"websocket.send",
-                "text": json.dumps(data),
-            })
+        sock = create_connection()
+        if sock is not  FAILURE_SOCK:
+            while True:
+                data = get_data(sock)
+                
+                self.send({
+                    "type":"websocket.send",
+                    "text": json.dumps(data),
+                })
             
 
     def websocket_receive(self, event):

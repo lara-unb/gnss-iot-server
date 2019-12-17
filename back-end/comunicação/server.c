@@ -291,8 +291,10 @@ int main(int argc, char *argv[])
                         {
                             data_server = serialize_server(&devices[i]);
                             send(server_fd, binn_ptr(data_server), binn_size(data_server), 0);
+                            binn_free(data_server);
                         }
                         send(sd, binn_ptr(data_device), binn_size(data_device), 0);
+                        binn_free(data_device);
                     }
                     else
                     {
