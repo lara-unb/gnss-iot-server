@@ -11,27 +11,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
-import socket
-import pybinn
-
-HOST = '127.0.0.1'
-PORT = 8888
-TOKEN = 'TOKENSERVIDOR'
-
-# Configuração da conexão
-
-
-def create_connection():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((HOST, PORT))
-    sock.send(TOKEN.encode())
-    res = sock.recv(1024)
-    print(res.decode())
-    return sock
-
-
-sock = create_connection()
-
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -98,7 +77,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'gnss_iot_server.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases

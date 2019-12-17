@@ -11,8 +11,6 @@ from .models import Device
 
 
 # Create your views here.
-
-
 def index(request):
     """A página inicial do Gnss Iot"""
     if request.user.is_authenticated:

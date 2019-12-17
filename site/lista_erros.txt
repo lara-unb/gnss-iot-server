@@ -1,0 +1,7 @@
+LISTA DE ERROS PARA RESOLVER 
+
+-> [ ] - Site recebendo apenas um dado
+-> [ ] - Servidor caindo
+-> [ ] - Plotar dados no mapa
+-> [ ] - Tratar erro para servidor do site nao cair - ConnectionRefusedError - /gnss_iot_server/settings.py 
+-> [ ] - Escrever uma melhor conexão entre servidor e site 
