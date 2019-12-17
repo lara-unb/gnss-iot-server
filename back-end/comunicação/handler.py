@@ -1,49 +1,94 @@
 import socket
-import pybinn
+import selectors
 import select
+import types
+import pybinn
+import time
+
+import pickle
+
 HOST = '127.0.0.1'
-PORT_SERVER = 8888
-PORT_WEB = 8889
+SERVER_PORT = 8888
+WEB_PORT = 8889
 token = 'TOKENSERVIDOR'
 
 
-def connection_server():
+sel = selectors.DefaultSelector()
+
+
+def sock_server():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((HOST, PORT_SERVER))
+    sock.connect((HOST, SERVER_PORT))
     sock.send(token.encode())
     res = sock.recv(1024)
-    print("Connection Established!")
     print(res.decode())
     return sock
 
 
-def connection_web():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind((HOST, PORT_WEB))
-    sock.listen()
-    return sock
+def sock_web():
+    lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    lsock.bind((HOST, WEB_PORT))
+    lsock.listen()
+    print("Server for Web App listening on", (HOST, WEB_PORT))
+    lsock.setblocking(False)
+    sel.register(lsock, selectors.EVENT_READ, data=None)
 
 
-def main():
-    sock_server = connection_server()
-    sock_web = connection_web()
-    connection, address = sock_web.accept()
+def accetp_wrapper(sock):
+    conn, addr = sock.accept()
+    print("New Connection from", addr)
+    conn.setblocking(False)
+    data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
+    events = selectors.EVENT_READ | selectors.EVENT_WRITE
+    sel.register(conn, events, data=data)
 
-    while True:
-        
-        sock_list = [sock_server]
-        read_sockets, write_sockets, error_sockets = select.select(
-            sock_list, [], [], None)
 
-        if read_sockets:
-            data = read_sockets[0].recv(1024)
-            print("Send data for Web App")
-            connection.send(data)
-            data = pybinn.loads(data)
-            print(data)
-        else:
-            print("Ainda nao !")
+def service_connection(key, mask, msg):
+    sock = key.fileobj
+    data = key.data
+
+    # if mask & selectors.EVENT_READ:
+    #     recv_data = sock.recv(1024)
+    #     if recv_data:
+    #         data.outb += recv_data
+    #     else:
+    #         print("Closing connecion ", data.addr)
+    #         sel.unregister(sock)
+    #         sock.close
+
+    if mask & selectors.EVENT_WRITE:
+        msg = pickle.dumps(msg)
+        try:
+            sock.send(msg)
+        except:  # Tratar todos os erros
+            print("Closing connecion ", data.addr)
+            sel.unregister(sock)
+            sock.close
+
+
+def data_server(sock):
+    r, w, e = select.select([sock], [], [], None)
+    if r:
+        data = r[0].recv(1024)
+        print("Send data for Web App")
+        data = pybinn.loads(data)
+        print(data)
+    else:
+        print("Ainda nao !")
+
+    return data
 
 
 if __name__ == "__main__":
-    main()
+    sock = sock_server()
+    sock_web()
+
+    while True:
+        events = sel.select(timeout=None)
+        
+        data = data_server(sock)
+        for key, mask in events:
+            if key.data is None:
+                accetp_wrapper(key.fileobj)
+            else:
+                service_connection(key, mask, data)

@@ -1,59 +1,94 @@
-import sys
 import socket
 import selectors
+import select
 import types
+import pybinn
+import time
+
+import pickle
+
+HOST = '127.0.0.1'
+SERVER_PORT = 8888
+WEB_PORT = 8889
+token = 'TOKENSERVIDOR'
+
 
 sel = selectors.DefaultSelector()
 
 
-def accept_wrapper(sock):
-    conn, addr = sock.accept()  # Should be ready to read
-    print("accepted connection from", addr)
+def sock_server():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((HOST, SERVER_PORT))
+    sock.send(token.encode())
+    res = sock.recv(1024)
+    print(res.decode())
+    return sock
+
+
+def sock_web():
+    lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    lsock.bind((HOST, WEB_PORT))
+    lsock.listen()
+    print("Server for Web App listening on", (HOST, WEB_PORT))
+    lsock.setblocking(False)
+    sel.register(lsock, selectors.EVENT_READ, data=None)
+
+
+def accetp_wrapper(sock):
+    conn, addr = sock.accept()
+    print("New Connection from", addr)
     conn.setblocking(False)
-    data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"")
+    data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     sel.register(conn, events, data=data)
 
 
-def service_connection(key, mask):
+def service_connection(key, mask, msg):
     sock = key.fileobj
     data = key.data
-    if mask & selectors.EVENT_READ:
-        recv_data = sock.recv(1024)  # Should be ready to read
-        if recv_data:
-            data.outb += recv_data
-        else:
-            print("closing connection to", data.addr)
-            sel.unregister(sock)
-            sock.close()
+
+    # if mask & selectors.EVENT_READ:
+    #     recv_data = sock.recv(1024)
+    #     if recv_data:
+    #         data.outb += recv_data
+    #     else:
+    #         print("Closing connecion ", data.addr)
+    #         sel.unregister(sock)
+    #         sock.close
+
     if mask & selectors.EVENT_WRITE:
-        if data.outb:
-            print("echoing", repr(data.outb), "to", data.addr)
-            sent = sock.send(data.outb)  # Should be ready to write
-            data.outb = data.outb[sent:]
+        msg = pickle.dumps(msg)
+        try:
+            sock.send(msg)
+        except:  # Tratar todos os erros
+            print("Closing connecion ", data.addr)
+            sel.unregister(sock)
+            sock.close
 
 
-if len(sys.argv) != 3:
-    print("usage:", sys.argv[0], "<host> <port>")
-    sys.exit(1)
+def data_server(sock):
+    r, w, e = select.select([sock], [], [], None)
+    if r:
+        data = r[0].recv(1024)
+        print("Send data for Web App")
+        data = pybinn.loads(data)
+        print(data)
+    else:
+        print("Ainda nao !")
 
-host, port = sys.argv[1], int(sys.argv[2])
-lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-lsock.bind((host, port))
-lsock.listen()
-print("listening on", (host, port))
-lsock.setblocking(False)
-sel.register(lsock, selectors.EVENT_READ, data=None)
+    return data
 
-try:
+
+if __name__ == "__main__":
+    sock = sock_server()
+    sock_web()
+
     while True:
         events = sel.select(timeout=None)
+        
+        data = data_server(sock)
         for key, mask in events:
             if key.data is None:
-                accept_wrapper(key.fileobj)
+                accetp_wrapper(key.fileobj)
             else:
-                service_connection(key, mask)
-except KeyboardInterrupt:
-    print("caught keyboard interrupt, exiting")
-finally:
-    sel.close()
+                service_connection(key, mask, data)
