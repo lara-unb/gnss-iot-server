@@ -38,7 +38,7 @@ def accetp_wrapper(sock):
     conn, addr = sock.accept()
     print("New Connection from", addr)
     conn.setblocking(False)
-    data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
+    data = types.SimpleNamespace(addr=addr, data_in=[], data_out={})
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     sel.register(conn, events, data=data)
 
@@ -85,7 +85,6 @@ if __name__ == "__main__":
 
     while True:
         events = sel.select(timeout=None)
-        
         data = data_server(sock)
         for key, mask in events:
             if key.data is None:
