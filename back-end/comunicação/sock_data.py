@@ -5,7 +5,7 @@ import socket
 import pickle
 
 HOST = '127.0.0.1'
-PORT = 8889
+PORT = 9999
 
 FAILURE_SOCK = -1
 

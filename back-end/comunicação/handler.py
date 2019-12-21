@@ -9,7 +9,7 @@ import pickle
 
 HOST = '127.0.0.1'
 SERVER_PORT = 8888
-WEB_PORT = 8889
+WEB_PORT = 9999
 token = 'TOKENSERVIDOR'
 
 

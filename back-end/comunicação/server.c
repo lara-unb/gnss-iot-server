@@ -55,7 +55,7 @@ int token_check(char *token_recebido, int len)
     while (fgets(token_registrado, 33, fp) != NULL)
     {
         token_registrado[32] = '\0';
-        
+
         if (!(strcmp(token_registrado, token_recebido)))
         {
             fclose(fp);
@@ -143,6 +143,7 @@ void bind_socket(struct sockaddr_in *address, int *master_socket)
         perror("bind failed");
         exit(EXIT_FAILURE);
     }
+    printf("================== Lara Server V1.0 ==================\n\n");
     printf("Listener on port %d \n", PORT);
 }
 
@@ -179,7 +180,6 @@ int main(int argc, char *argv[])
     /*set of socket descriptors*/
     fd_set readfds;
 
-    /*a message*/
     char *message = "Servidor GNSS - LARA  v1.0 \r\n";
 
     /*initialise all client_socket[] to 0 so not checked*/
@@ -311,43 +311,46 @@ int main(int argc, char *argv[])
                 else
                 {
 
-                    valread = read(sd, buffer, 1024);
-
-                    buffer[valread] = '\0';
-
-                    switch (token_check(buffer, valread))
+                    if ((valread = read(sd, buffer, 1024)) != 0)
                     {
 
-                    case ACESSO_PERMITIDO:
-                        printf("Acesso permitido\n");
-                        x = ACESSO_PERMITIDO;
-                        send(sd, &x, sizeof(ACESSO_PERMITIDO), 0);
-                        devices[i].file_description = sd;
-                        strcpy(devices[i].token, buffer);
-                        
-                        devices[i].autenticacao = ACESSO_PERMITIDO;
-                        break;
+                        buffer[valread] = '\0';
 
-                    case ACESSO_NEGADO:
-                        printf("Acesso negado\n");
-                        x = ACESSO_NEGADO;
-                        send(sd, &x, sizeof(ACESSO_NEGADO), 0);
+                        switch (token_check(buffer, valread))
+                        {
+
+                        case ACESSO_PERMITIDO:
+                            printf("Acesso permitido\n");
+                            x = ACESSO_PERMITIDO;
+                            send(sd, &x, sizeof(ACESSO_PERMITIDO), 0);
+                            devices[i].file_description = sd;
+                            strcpy(devices[i].token, buffer);
+
+                            devices[i].autenticacao = ACESSO_PERMITIDO;
+                            break;
+
+                        case ACESSO_NEGADO:
+                            printf("Acesso negado\n");
+                            x = ACESSO_NEGADO;
+                            send(sd, &x, sizeof(ACESSO_NEGADO), 0);
+                            close(sd);
+                            client_socket[i] = 0;
+                            break;
+
+                        case SERVIDOR:
+                            server_fd = sd;
+                            printf("Servidor conectado\n");
+                            break;
+                        }
+                    }
+                    else
+                    {
                         close(sd);
                         client_socket[i] = 0;
-                        break;
-
-                    case SERVIDOR:
-                        server_fd = sd;
-                        printf("Servidor conectado\n");
-                        break;
                     }
                 }
             }
         }
     }
-
-    binn_free(data_device);
-    binn_free(data_server);
-
     return 0;
 }
