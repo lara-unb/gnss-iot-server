@@ -47,19 +47,24 @@ def service_connection(key, mask, msg):
     sock = key.fileobj
     data = key.data
 
-    # if mask & selectors.EVENT_READ:
-    #     recv_data = sock.recv(1024)
-    #     if recv_data:
-    #         data.outb += recv_data
-    #     else:
-    #         print("Closing connecion ", data.addr)
-    #         sel.unregister(sock)
-    #         sock.close
+    if mask & selectors.EVENT_READ:
+        recv_data = sock.recv(1024)
+        if recv_data:
+            recv_data = pickle.loads(recv_data)
+            for ids in recv_data:
+                if ids not in data.data_in:
+                    data.data_in.append(ids)
+        else:
+            print("Closing connecion ", data.addr)
+            sel.unregister(sock)
+            sock.close
 
     if mask & selectors.EVENT_WRITE:
-        msg = pickle.dumps(msg)
         try:
-            sock.send(msg)
+            if msg['id'] in data.data_in:
+                msg = pickle.dumps(msg)
+                sock.send(msg)
+                
         except:  # Tratar todos os erros
             print("Closing connecion ", data.addr)
             sel.unregister(sock)

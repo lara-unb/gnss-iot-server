@@ -143,7 +143,7 @@ void bind_socket(struct sockaddr_in *address, int *master_socket)
         perror("bind failed");
         exit(EXIT_FAILURE);
     }
-    printf("================== Lara Server V1.0 ==================\n\n");
+    printf("\n\n================== Lara Server V1.0 ==================\n\n");
     printf("Listener on port %d \n", PORT);
 }
 
