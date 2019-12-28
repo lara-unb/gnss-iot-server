@@ -16,6 +16,7 @@ token = 'TOKENSERVIDOR'
 sel = selectors.DefaultSelector()
 
 
+
 def sock_server():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((HOST, SERVER_PORT))
@@ -59,17 +60,18 @@ def service_connection(key, mask, msg):
             sel.unregister(sock)
             sock.close
 
-    if mask & selectors.EVENT_WRITE:
+    else :
         try:
             if msg['id'] in data.data_in:
                 msg = pickle.dumps(msg)
                 sock.send(msg)
                 
-        except:  # Tratar todos os erros
+        except BrokenPipeError:  # Tratar todos os erros
             print("Closing connecion ", data.addr)
             sel.unregister(sock)
             sock.close
-
+            
+            
 
 def data_server(sock):
     r, w, e = select.select([sock], [], [], None)

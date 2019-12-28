@@ -8,14 +8,10 @@ import pickle
 HOST = '127.0.0.1'
 PORT = 9999
 
-FAILURE_SOCK = -1
-
 sel = selectors.DefaultSelector()
-
 ids = ["3236D37B277EC67E4C49929986AC6CED"]
 
-
-def create_connection():
+def create_connection(ids = ids):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
@@ -37,8 +33,13 @@ def get_data(key, mask):
 
     if mask & selectors.EVENT_READ:
         dados = sock.recv(1024)
-        dados = pickle.loads(dados)
-        print(dados)
+        if dados:
+            dados = pickle.loads(dados)
+            print(dados)
+            return dados
+        else:
+            sel.unregister(sock)
+            close(sock)
 
 if __name__ == "__main__":
 

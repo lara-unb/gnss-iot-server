@@ -34,6 +34,7 @@ binn *serialize_device(device_t *device);
 void settings_socket(struct sockaddr_in *address, int *master_socket);
 void bind_socket(struct sockaddr_in *address, int *master_socket);
 void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen);
+int isready(int fd);
 
 int token_check(char *token_recebido, int len)
 {
@@ -42,10 +43,9 @@ int token_check(char *token_recebido, int len)
     char *file_name = "tokens.txt";
 
     if (!(strcmp("TOKENSERVIDOR", token_recebido)))
-    {
+
 
         return SERVIDOR;
-    }
 
     if ((fp = fopen(file_name, "r")) == NULL)
     {
@@ -161,11 +161,26 @@ void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen
     puts("Waiting for connections ...");
 }
 
+int isready(int fd)
+{
+
+    int rc;
+    fd_set fds;
+
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
+
+    rc = select(fd + 1, NULL, &fds, NULL, NULL);
+    if (rc < 0)
+        return -1;
+    return FD_ISSET(fd, &fds) ? 1 : 0;
+}
+
 int main(int argc, char *argv[])
 {
     int master_socket, addrlen, new_socket;
     int activity, i, valread, sd, max_sd;
-    int server_fd, x;
+    int server_fd = 0, x;
 
     int client_socket[MAX_CLIENT];
 
@@ -238,7 +253,7 @@ int main(int argc, char *argv[])
             }
 
             /*inform user of socket number - used in send and receive commands*/
-            printf("New connection , socket fd is %d , ip is : %s , port : %d\n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+            printf("New connection , socket fd is %d , ip is: %s , port: %d\n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
             /*send new connection greeting message*/
             if (send(new_socket, message, strlen(message), 0) != strlen(message))
@@ -248,17 +263,52 @@ int main(int argc, char *argv[])
 
             puts("Welcome message sent successfully");
 
-            /*add new socket to array of sockets*/
-            for (i = 0; i < MAX_CLIENT; i++)
+            if ((valread = read(new_socket, buffer, 1024)) != 0)
             {
-                /*if position is empty*/
-                if (client_socket[i] == 0)
-                {
-                    client_socket[i] = new_socket;
-                    printf("Adding to list of sockets as %d\n", i);
 
+                buffer[valread] = '\0';
+
+                switch (token_check(buffer, valread))
+                {
+
+                case ACESSO_PERMITIDO:
+                    printf("Acesso permitido\n");
+                    x = ACESSO_PERMITIDO;
+                    send(new_socket, &x, sizeof(ACESSO_PERMITIDO), 0);
+
+                    /*add new socket to array of sockets*/
+                    for (i = 0; i < MAX_CLIENT; i++)
+                    {
+                        /*if position is empty*/
+                        if (client_socket[i] == 0)
+                        {
+                            client_socket[i] = new_socket;
+                            printf("Adding to list of sockets as %d\n", i);
+                            devices[i].file_description = new_socket;
+                            devices[i].autenticacao = ACESSO_PERMITIDO;
+                            strcpy(devices[i].token, buffer);
+
+                            break;
+                        }
+                    }
+                    break;
+
+                case ACESSO_NEGADO:
+                    printf("Acesso negado\n");
+                    x = ACESSO_NEGADO;
+                    send(new_socket, &x, sizeof(ACESSO_NEGADO), 0);
+                    close(new_socket);
+                    break;
+
+                case SERVIDOR:
+                    server_fd = new_socket;
+                    printf("Servidor conectado\n");
                     break;
                 }
+            }
+            else
+            {
+                close(new_socket);
             }
         }
 
@@ -272,82 +322,47 @@ int main(int argc, char *argv[])
                 /*Check if it was for closing , and also read the*/
                 /*incoming message*/
 
-                if (devices[i].autenticacao)
+                data_device = serialize_device(&devices[i]);
+                if ((read(sd, binn_ptr(data_device), binn_size(data_device))) != 0)
                 {
+                    void *list = binn_object_list(data_device, "coord");
+
+                    devices[i].coord[0] = binn_list_double(list, 1);
+                    devices[i].coord[1] = binn_list_double(list, 2);
+                    devices[i].coord[0]++;
+                    devices[i].coord[1]++;
+                    printf("%lf %lf\n", devices[i].coord[0], devices[i].coord[1]);
+                    printf("%s\n", devices[i].token);
                     data_device = serialize_device(&devices[i]);
-                    if ((read(sd, binn_ptr(data_device), binn_size(data_device))) != 0)
+
+                    data_server = serialize_server(&devices[i]);
+
+                    if (server_fd)
                     {
-                        void *list = binn_object_list(data_device, "coord");
-
-                        devices[i].coord[0] = binn_list_double(list, 1);
-                        devices[i].coord[1] = binn_list_double(list, 2);
-                        devices[i].coord[0]++;
-                        devices[i].coord[1]++;
-                        printf("%lf %lf\n", devices[i].coord[0], devices[i].coord[1]);
-                        printf("%s\n", devices[i].token);
-                        data_device = serialize_device(&devices[i]);
-
-                        if (server_fd)
+                        printf("FD SERVIDOR: %d\n", server_fd);
+                        if (send(server_fd, binn_ptr(data_server), binn_size(data_server), 0) < 0)
                         {
-                            data_server = serialize_server(&devices[i]);
-                            send(server_fd, binn_ptr(data_server), binn_size(data_server), 0);
-                            binn_free(data_server);
+                            perror("Send");
+                            printf("SERVIDOR WEB DESCONECTADO...\n");
+                            close(server_fd);
+                            server_fd = 0;
                         }
-                        send(sd, binn_ptr(data_device), binn_size(data_device), 0);
-                        binn_free(data_device);
+                        binn_free(data_server);
                     }
-                    else
-                    {
-                        getpeername(sd, (struct sockaddr *)&address,
-                                    (socklen_t *)&addrlen);
-                        printf("Host disconnected , ip %s , port %d \n",
-                               inet_ntoa(address.sin_addr), ntohs(address.sin_port));
-                        close(sd);
-                        client_socket[i] = 0;
 
-                        devices[i].autenticacao = 0;
-                    }
+                    send(sd, binn_ptr(data_device), binn_size(data_device), 0);
+                    binn_free(data_device);
                 }
                 else
                 {
+                    getpeername(sd, (struct sockaddr *)&address,
+                                (socklen_t *)&addrlen);
+                    printf("Host disconnected , ip %s , port %d \n",
+                           inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+                    close(sd);
+                    client_socket[i] = 0;
 
-                    if ((valread = read(sd, buffer, 1024)) != 0)
-                    {
-
-                        buffer[valread] = '\0';
-
-                        switch (token_check(buffer, valread))
-                        {
-
-                        case ACESSO_PERMITIDO:
-                            printf("Acesso permitido\n");
-                            x = ACESSO_PERMITIDO;
-                            send(sd, &x, sizeof(ACESSO_PERMITIDO), 0);
-                            devices[i].file_description = sd;
-                            strcpy(devices[i].token, buffer);
-
-                            devices[i].autenticacao = ACESSO_PERMITIDO;
-                            break;
-
-                        case ACESSO_NEGADO:
-                            printf("Acesso negado\n");
-                            x = ACESSO_NEGADO;
-                            send(sd, &x, sizeof(ACESSO_NEGADO), 0);
-                            close(sd);
-                            client_socket[i] = 0;
-                            break;
-
-                        case SERVIDOR:
-                            server_fd = sd;
-                            printf("Servidor conectado\n");
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        close(sd);
-                        client_socket[i] = 0;
-                    }
+                    devices[i].autenticacao = 0;
                 }
             }
         }
