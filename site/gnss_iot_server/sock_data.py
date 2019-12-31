@@ -8,11 +8,11 @@ import pickle
 HOST = '127.0.0.1'
 PORT = 9999
 
-sel = selectors.DefaultSelector()
 
 ids = ["3236D37B277EC67E4C49929986AC6CED"]
 
-def create_connection(ids):
+
+def create_connection(ids, sel):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
@@ -27,8 +27,8 @@ def create_connection(ids):
         print(erro_connection)
 
 
-def get_data(key, mask):
-    
+def get_data(key, mask, sel):
+
     sock = key.fileobj
     data = key.data
 
@@ -40,14 +40,18 @@ def get_data(key, mask):
             return dados
         else:
             sel.unregister(sock)
-            close(sock)
+            sock.close()
+            return None
+    else:
+        return None
 
 if __name__ == "__main__":
 
-    sock = create_connection()
+    sel = selectors.DefaultSelector()
+    sock = create_connection(ids, sel)
 
     while True:
         events = sel.select(timeout=None)
         for key, mask in events:
             if key.data != None:
-                get_data(key, mask)
+                get_data(key, mask, sel)

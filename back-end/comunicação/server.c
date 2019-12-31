@@ -2,12 +2,15 @@
 #include <string.h> /*strlen*/
 #include <stdlib.h>
 #include <errno.h>
-#include <unistd.h>    /*close*/
+#include <unistd.h> /*close*/
+#include <fcntl.h>
 #include <arpa/inet.h> /*close*/
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/time.h> /*FD_SET, FD_ISSET, FD_ZERO macros*/
+
+#include <signal.h>
 
 #include <binn.h>
 
@@ -34,7 +37,7 @@ binn *serialize_device(device_t *device);
 void settings_socket(struct sockaddr_in *address, int *master_socket);
 void bind_socket(struct sockaddr_in *address, int *master_socket);
 void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen);
-int isready(int fd);
+void sigpipe_handler();
 
 int token_check(char *token_recebido, int len)
 {
@@ -43,8 +46,6 @@ int token_check(char *token_recebido, int len)
     char *file_name = "tokens.txt";
 
     if (!(strcmp("TOKENSERVIDOR", token_recebido)))
-
-
         return SERVIDOR;
 
     if ((fp = fopen(file_name, "r")) == NULL)
@@ -55,7 +56,6 @@ int token_check(char *token_recebido, int len)
     while (fgets(token_registrado, 33, fp) != NULL)
     {
         token_registrado[32] = '\0';
-
         if (!(strcmp(token_registrado, token_recebido)))
         {
             fclose(fp);
@@ -161,26 +161,22 @@ void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen
     puts("Waiting for connections ...");
 }
 
-int isready(int fd)
+void sigpipe_handler(int *server_fd)
 {
 
-    int rc;
-    fd_set fds;
-
-    FD_ZERO(&fds);
-    FD_SET(fd, &fds);
-
-    rc = select(fd + 1, NULL, &fds, NULL, NULL);
-    if (rc < 0)
-        return -1;
-    return FD_ISSET(fd, &fds) ? 1 : 0;
+    perror("Send");
+    printf("SERVIDOR WEB DESCONECTADO...\n");
+    close(*server_fd);
+    *server_fd = 0;
 }
 
 int main(int argc, char *argv[])
 {
-    int master_socket, addrlen, new_socket;
-    int activity, i, valread, sd, max_sd;
-    int server_fd = 0, x;
+    int master_socket = 0, addrlen = 0, new_socket = 0;
+    int activity = 0, i = 0, valread = 0, sd = 0, max_sd = 0;
+    int server_fd = 0, x = 0;
+
+    int send_bytes = 0;
 
     int client_socket[MAX_CLIENT];
 
@@ -274,29 +270,36 @@ int main(int argc, char *argv[])
                 case ACESSO_PERMITIDO:
                     printf("Acesso permitido\n");
                     x = ACESSO_PERMITIDO;
-                    send(new_socket, &x, sizeof(ACESSO_PERMITIDO), 0);
-
-                    /*add new socket to array of sockets*/
-                    for (i = 0; i < MAX_CLIENT; i++)
+                    if (send(new_socket, &x, sizeof(ACESSO_PERMITIDO), 0) > 0)
                     {
-                        /*if position is empty*/
-                        if (client_socket[i] == 0)
+                        /*add new socket to array of sockets*/
+                        for (i = 0; i < MAX_CLIENT; i++)
                         {
-                            client_socket[i] = new_socket;
-                            printf("Adding to list of sockets as %d\n", i);
-                            devices[i].file_description = new_socket;
-                            devices[i].autenticacao = ACESSO_PERMITIDO;
-                            strcpy(devices[i].token, buffer);
+                            /*if position is empty*/
+                            if (client_socket[i] == 0)
+                            {
+                                client_socket[i] = new_socket;
+                                printf("Adding to list of sockets as %d\n", i);
+                                devices[i].file_description = new_socket;
+                                devices[i].autenticacao = ACESSO_PERMITIDO;
+                                strcpy(devices[i].token, buffer);
 
-                            break;
+                                break;
+                            }
                         }
                     }
+                    else
+                    {
+                        close(new_socket);
+                    }
+
                     break;
 
                 case ACESSO_NEGADO:
                     printf("Acesso negado\n");
                     x = ACESSO_NEGADO;
-                    send(new_socket, &x, sizeof(ACESSO_NEGADO), 0);
+                    if (send(new_socket, &x, sizeof(ACESSO_NEGADO), 0) < 0)
+                        close(new_socket);
                     close(new_socket);
                     break;
 
@@ -305,10 +308,6 @@ int main(int argc, char *argv[])
                     printf("Servidor conectado\n");
                     break;
                 }
-            }
-            else
-            {
-                close(new_socket);
             }
         }
 
@@ -335,18 +334,15 @@ int main(int argc, char *argv[])
                     printf("%s\n", devices[i].token);
                     data_device = serialize_device(&devices[i]);
 
-                    data_server = serialize_server(&devices[i]);
-
                     if (server_fd)
                     {
+                        signal(SIGPIPE, sigpipe_handler);
                         printf("FD SERVIDOR: %d\n", server_fd);
-                        if (send(server_fd, binn_ptr(data_server), binn_size(data_server), 0) < 0)
-                        {
-                            perror("Send");
-                            printf("SERVIDOR WEB DESCONECTADO...\n");
-                            close(server_fd);
-                            server_fd = 0;
-                        }
+                        data_server = serialize_server(&devices[i]);
+                        printf("BYTE ANTES: %d\n", send_bytes);
+                        send_bytes = write(server_fd, binn_ptr(data_server), binn_size(data_server));
+                        printf("BYTE DEPOIS: %d\n", send_bytes);
+
                         binn_free(data_server);
                     }
 
@@ -361,7 +357,6 @@ int main(int argc, char *argv[])
                            inet_ntoa(address.sin_addr), ntohs(address.sin_port));
                     close(sd);
                     client_socket[i] = 0;
-
                     devices[i].autenticacao = 0;
                 }
             }

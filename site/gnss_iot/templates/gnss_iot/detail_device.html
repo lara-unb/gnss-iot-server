@@ -4,7 +4,7 @@
 {% load leaflet_tags %}
 
 
-<div id="mapid" class="container" >
+<div id="mapid">
     {% leaflet_map "main" %}
 </div>
 <p id='dado'>oi</p>
@@ -38,13 +38,6 @@
     socket.onclose = function (e) {
         console.log("close", e)
     }
-
-    function map_init_basic(map, options) {
-        console.log("MAPA", options)
-        L.marker([dados_posicao.coord[0], dados_posicao.coord[1]]).addTo(map);
-
-    }
-
 
 </script>
 

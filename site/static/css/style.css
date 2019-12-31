@@ -91,6 +91,7 @@ body {
   }
 
   #mapid{
-    transform: scale(1);
+    width: 100%;
+    right: 100%;
 
   }

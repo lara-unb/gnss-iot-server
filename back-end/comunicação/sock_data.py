@@ -38,8 +38,10 @@ def get_data(key, mask):
             print(dados)
             return dados
         else:
+            print("Closing connecion")
             sel.unregister(sock)
-            close(sock)
+            sock.close()
+
 
 if __name__ == "__main__":
 

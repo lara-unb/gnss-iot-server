@@ -77,13 +77,14 @@ def data_server(sock):
     r, w, e = select.select([sock], [], [], None)
     if r:
         data = r[0].recv(1024)
-        print("Send data for Web App")
-        data = pybinn.loads(data)
-        print(data)
-    else:
-        print("Ainda nao !")
-
-    return data
+        if data:
+            print("Send data for Web App")
+            data = pybinn.loads(data)
+            print(data)
+            return data
+        else:
+            r[0].close()
+            return None
 
 
 if __name__ == "__main__":
@@ -92,6 +93,7 @@ if __name__ == "__main__":
 
     while True:
         events = sel.select(timeout=None)
+        
         data = data_server(sock)
         for key, mask in events:
             if key.data is None:
