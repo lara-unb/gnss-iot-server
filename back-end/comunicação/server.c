@@ -10,8 +10,6 @@
 #include <netinet/in.h>
 #include <sys/time.h> /*FD_SET, FD_ISSET, FD_ZERO macros*/
 
-#include <signal.h>
-
 #include <binn.h>
 
 #define SERVIDOR 2
@@ -161,15 +159,6 @@ void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen
     puts("Waiting for connections ...");
 }
 
-void sigpipe_handler(int *server_fd)
-{
-
-    perror("Send");
-    printf("SERVIDOR WEB DESCONECTADO...\n");
-    close(*server_fd);
-    *server_fd = 0;
-}
-
 int main(int argc, char *argv[])
 {
     int master_socket = 0, addrlen = 0, new_socket = 0;
@@ -270,7 +259,7 @@ int main(int argc, char *argv[])
                 case ACESSO_PERMITIDO:
                     printf("Acesso permitido\n");
                     x = ACESSO_PERMITIDO;
-                    if (send(new_socket, &x, sizeof(ACESSO_PERMITIDO), 0) > 0)
+                    if (send(new_socket, &x, sizeof(ACESSO_PERMITIDO), 0) >= 0)
                     {
                         /*add new socket to array of sockets*/
                         for (i = 0; i < MAX_CLIENT; i++)
@@ -336,12 +325,19 @@ int main(int argc, char *argv[])
 
                     if (server_fd)
                     {
-                        signal(SIGPIPE, sigpipe_handler);
-                        printf("FD SERVIDOR: %d\n", server_fd);
                         data_server = serialize_server(&devices[i]);
+
                         printf("BYTE ANTES: %d\n", send_bytes);
+                        printf("FD SERVIDOR: %d\n", server_fd);
                         send_bytes = write(server_fd, binn_ptr(data_server), binn_size(data_server));
                         printf("BYTE DEPOIS: %d\n", send_bytes);
+
+                        if (send_bytes == -1)
+                        {
+                            printf("SERVIDOR WEB DESCONECTADO...\n");
+                            close(server_fd);
+                            server_fd = 0;
+                        }
 
                         binn_free(data_server);
                     }
