@@ -165,8 +165,6 @@ int main(int argc, char *argv[])
     int activity = 0, i = 0, valread = 0, sd = 0, max_sd = 0;
     int server_fd = 0, x = 0;
 
-    int send_bytes = 0;
-
     int client_socket[MAX_CLIENT];
 
     char buffer[1025];
@@ -287,8 +285,7 @@ int main(int argc, char *argv[])
                 case ACESSO_NEGADO:
                     printf("Acesso negado\n");
                     x = ACESSO_NEGADO;
-                    if (send(new_socket, &x, sizeof(ACESSO_NEGADO), 0) < 0)
-                        close(new_socket);
+                    send(new_socket, &x, sizeof(ACESSO_NEGADO), 0);
                     close(new_socket);
                     break;
 
