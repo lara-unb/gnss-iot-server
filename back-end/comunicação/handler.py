@@ -16,7 +16,6 @@ token = 'TOKENSERVIDOR'
 sel = selectors.DefaultSelector()
 
 
-
 def sock_server():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((HOST, SERVER_PORT))
@@ -60,18 +59,17 @@ def service_connection(key, mask, msg):
             sel.unregister(sock)
             sock.close
 
-    else :
+    else:
         try:
             if msg['id'] in data.data_in:
                 msg = pickle.dumps(msg)
                 sock.send(msg)
-                
+
         except BrokenPipeError:  # Tratar todos os erros
             print("Closing connecion ", data.addr)
             sel.unregister(sock)
             sock.close
-            
-            
+
 
 def data_server(sock):
     r, w, e = select.select([sock], [], [], None)
@@ -91,12 +89,18 @@ if __name__ == "__main__":
     sock = sock_server()
     sock_web()
 
-    while True:
-        events = sel.select(timeout=None)
+    try:
+        while True:
+            events = sel.select(timeout=None)
+
+            data = data_server(sock)
+            for key, mask in events:
+                if key.data is None:
+                    accetp_wrapper(key.fileobj)
+                else:
+                    service_connection(key, mask, data)
+    except KeyboardInterrupt:
         
-        data = data_server(sock)
-        for key, mask in events:
-            if key.data is None:
-                accetp_wrapper(key.fileobj)
-            else:
-                service_connection(key, mask, data)
+        print("Handler off...")
+    finally:
+        sel.close()

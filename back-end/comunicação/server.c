@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
     /*set of socket descriptors*/
     fd_set readfds;
 
-    char *message = "Servidor GNSS - LARA  v1.0 \r\n";
+    char *message = "Servidor GNSS - LARA  v1.0\n";
 
     /*initialise all client_socket[] to 0 so not checked*/
     for (i = 0; i < MAX_CLIENT; i++)
@@ -326,19 +326,12 @@ int main(int argc, char *argv[])
                     if (server_fd)
                     {
                         data_server = serialize_server(&devices[i]);
-
-                        printf("BYTE ANTES: %d\n", send_bytes);
-                        printf("FD SERVIDOR: %d\n", server_fd);
-                        send_bytes = write(server_fd, binn_ptr(data_server), binn_size(data_server));
-                        printf("BYTE DEPOIS: %d\n", send_bytes);
-
-                        if (send_bytes == -1)
+                        if ((send(server_fd, binn_ptr(data_server), binn_size(data_server), MSG_NOSIGNAL)) == -1)
                         {
                             printf("SERVIDOR WEB DESCONECTADO...\n");
                             close(server_fd);
                             server_fd = 0;
                         }
-
                         binn_free(data_server);
                     }
 
