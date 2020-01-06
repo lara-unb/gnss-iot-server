@@ -35,7 +35,7 @@ binn *serialize_device(device_t *device);
 void settings_socket(struct sockaddr_in *address, int *master_socket);
 void bind_socket(struct sockaddr_in *address, int *master_socket);
 void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen);
-void sigpipe_handler();
+
 
 int token_check(char *token_recebido, int len)
 {
@@ -241,7 +241,7 @@ int main(int argc, char *argv[])
             /*send new connection greeting message*/
             if (send(new_socket, message, strlen(message), 0) != strlen(message))
             {
-                perror("send");
+                perror("enviar");
             }
 
             puts("Welcome message sent successfully");
@@ -323,6 +323,7 @@ int main(int argc, char *argv[])
                     if (server_fd)
                     {
                         data_server = serialize_server(&devices[i]);
+
                         if ((send(server_fd, binn_ptr(data_server), binn_size(data_server), MSG_NOSIGNAL)) == -1)
                         {
                             printf("SERVIDOR WEB DESCONECTADO...\n");

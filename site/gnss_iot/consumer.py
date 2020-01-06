@@ -40,5 +40,5 @@ class GnssConsumer(SyncConsumer):
 
     def websocket_disconnect(self, event):
         print("disconnect", event)
-        # sel.unregister(sock)
-        # close(sock)
+        sel.unregister(sock)
+        sel.close()
