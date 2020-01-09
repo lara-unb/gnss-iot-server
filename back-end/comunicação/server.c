@@ -314,8 +314,8 @@ int main(int argc, char *argv[])
 
                     devices[i].coord[0] = binn_list_double(list, 1);
                     devices[i].coord[1] = binn_list_double(list, 2);
-                    devices[i].coord[0]++;
-                    devices[i].coord[1]++;
+                    devices[i].coord[0] = 0.01 + devices[i].coord[0];
+                    devices[i].coord[1] = 0.01 + devices[i].coord[1];
                     printf("%lf %lf\n", devices[i].coord[0], devices[i].coord[1]);
                     printf("%s\n", devices[i].token);
                     data_device = serialize_device(&devices[i]);

@@ -43,10 +43,10 @@ int main(int argc, char const *argv[])
 
     device_t device;
 
-    device.token = "AA480353C9CDBFA3DDA053CBD0064557";
+    device.token = "3236D37B277EC67E4C49929986AC6CED";
 
-    device.coord[0] = 44;
-    device.coord[1] = 66;
+    device.coord[0] = -15.765940453;
+    device.coord[1] = -47.872187540;
 
     char buffer[1024] = {0};
     struct sockaddr_in serv_addr;
