@@ -65,7 +65,7 @@ def service_connection(key, mask, msg):
                 msg = pickle.dumps(msg)
                 sock.send(msg)
 
-        except BrokenPipeError:  # Tratar todos os erros
+        except:  # Tratar todos os erros
             print("Closing connecion ", data.addr)
             sel.unregister(sock)
             sock.close
