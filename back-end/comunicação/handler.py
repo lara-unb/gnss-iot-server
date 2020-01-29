@@ -76,10 +76,14 @@ def data_server(sock):
     if r:
         data = r[0].recv(1024)
         if data:
-            print("Send data for Web App")
-            data = pybinn.loads(data)
-            print(data)
-            return data
+            print("Send data to Web App")
+
+            try:
+                data = pybinn.loads(data)
+                print(data)
+                return data
+            except:
+            	print("Deu erro aqui !")
         else:
             r[0].close()
             return None

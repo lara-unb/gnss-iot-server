@@ -14,7 +14,6 @@ ids = ["3236D37B277EC67E4C49929986AC6CED", "47554EDEBB2DD0E304AE3C99D79D0471"]
 
 class GnssConsumer(SyncConsumer):
 
-
     def websocket_connect(self, event):
         print("connected", event)
         self.send({
