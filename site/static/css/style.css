@@ -1,7 +1,100 @@
+@import url("bootstrap.css");
+* {
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+  list-style: none;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 15vh;
+}
+
+main {
+  height: 100%;
+}
+
+footer {
+  display: flex;
+  height: 40px;
+  background-color: var(--primary);
+}
+
+.logo {
+  margin-left: 50px;
+  text-transform: uppercase;
+  /* border: 1px solid #000000; */
+}
+
+.logo span {
+  padding-left: 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.logo a {
+  display: block;
+  padding: 10px;
+}
+
+.logo a:hover {
+  text-decoration: none;
+}
+
+.nav-links {
+  margin-top: 15px;
+  display: flex;
+  /* border: 1px solid #000000; */
+}
+
+.nav-links a {
+  display: block;
+  padding: 15px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #8d8d8d;
+  font-size: 85%;
+  font-weight: bold;
+}
+
+.nav-links a:hover {
+  color: var(--primary);
+}
+
+.enter-register {
+  display: flex;
+  margin-right: 25px;
+}
+
+.content{
+  background-color: #d1d1d1;
+  display: flex;
+  height: 100%;
+}
+
+.menu {
+  position: fixed;
+  top: 10px;
+  margin-left: 2.5%;
+  width: 95%;
+  border-radius: 5px;
+  background-color: white;
+  z-index: 2;
+}
+
+.menu nav {
+  height: 10vh;
+}
 
 
-.nav_style {
-  background-color: #007bff;
+#mapid {
+  z-index: 1;
+  height: 100%;
+  width: 100%;
 }
 
 .card-signin {
@@ -33,54 +126,3 @@
   transition: all 0.2s;
 }
 
-body {
-  overflow-x: hidden;
-}
-
-#sidebar-wrapper {
-  min-height: 100vh;
-  margin-left: -15rem;
-  -webkit-transition: margin .25s ease-out;
-  -moz-transition: margin .25s ease-out;
-  -o-transition: margin .25s ease-out;
-  transition: margin .25s ease-out;
-}
-
-#sidebar-wrapper .sidebar-heading {
-  padding: 0.875rem 1.25rem;
-  font-size: 1.2rem;
-}
-
-#sidebar-wrapper .list-group {
-  width: 15rem;
-}
-
-#page-content-wrapper {
-  min-width: 100vw;
-}
-
-#wrapper.toggled #sidebar-wrapper {
-  margin-left: 0;
-}
-
-@media (min-width: 768px) {
-  #sidebar-wrapper {
-    margin-left: 0;
-  }
-  #page-content-wrapper {
-    min-width: 0;
-    width: 100%;
-  }
-  #wrapper.toggled #sidebar-wrapper {
-    margin-left: -15rem;
-  }
-}
-
-.my_navbar-toggler {
-  padding: 0.25rem 0.75rem;
-  font-size: 1.25rem;
-  line-height: 1;
-  background-color: transparent;
-  border: 1px transparent;
-  border-radius: 0.25rem;
-}

@@ -1,86 +1,79 @@
 {% load static %}
-{# Load the tag library #}
+
 {% load bootstrap4 %}
 {% load leaflet_tags %}
-{# Load CSS and JavaScript #}
-{% bootstrap_css %} 
-{% bootstrap_javascript jquery='full' %} 
+
+{% bootstrap_css %}
+{% bootstrap_javascript jquery='full' %}
 
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Gnss Iot </title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Gnss Iot </title>
 
-    <link rel="stylesheet" href="{% static  'css/bootstrap4.css' %}">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
-
-    {% leaflet_js %}
-    {% leaflet_css %}
+  <link rel="stylesheet" href="{% static  'css/bootstrap4.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
 
+  {% leaflet_js %}
+  {% leaflet_css %}
+
+  
 </head>
 
 <body>
+  
+  {% if not user.is_authenticated %}
+  <nav class="shadow-sm">
 
-{% if not user.is_authenticated %}
+    <div class="logo">
 
-<nav class="navbar navbar-expand-lg navbar-dark nav_style  p-3">
-
-  <div class="container">
-
-    <div class="" >
-        <a class="navbar-brand " href= " {% url 'gnss_iot:index' %} ">
-            <i class="fas fa-globe-americas"></i>Gnss Iot</a>
+      <a href=" {% url 'gnss_iot:index' %} ">
+        <img src="{% static 'img/global-logo.png' %}" alt="logo" height="65px" width="65px" >
+        <span>Gnss IoT</span>
+      </a>
 
     </div>
 
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  
-  {% if user.is_authenticated %}
-
-  <div class="collapse navbar-collapse " id="navbarNav">
-    <ul class="navbar-nav  ml-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="#">{{user.username.title}}<span class="sr-only">(current)</span></a>
+    <ul class="nav-links">
+      <li>
+        <a href="">Home</a>
       </li>
 
-      <li class="nav-item active">
-        <a class="nav-link" href="{% url 'user:logout' %} ">Logout<span class="sr-only">(current)</span></a>
+      <li>
+        <a href="">Aplicações</a>
       </li>
 
-    </ul>
-  </div>
-
-{% else %}
-
-  <div class="collapse navbar-collapse " id="navbarNav">
-    <ul class="navbar-nav  ml-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href= " {% url 'user:login' %} ">Login<span class="sr-only">(current)</span></a>
+      <li>
+        <a href="">Desenvolvimento</a>
       </li>
-      <li class="nav-item active">
-        <a class="nav-link" href="{% url 'user:register' %}">Register <span class="sr-only">(current)</span></a>
+      <li>
+        <a href="">Sobre</a>
       </li>
     </ul>
-  </div>
 
+    <div class="enter-register">
+      <a class="nav-link" href=" {% url 'user:login' %} ">Entrar</a>
+      <a class="nav-link" href="{% url 'user:register' %}">Registrar </a>
+    </div>
+
+
+  </nav>
   {% endif %}
-</div>
-</nav>
-{% endif %}
 
+  <main>
     {% block content %}
     {% endblock content %}
+  </main>
 
+  
+  <footer>
 
-
+  </footer>
 </body>
 
 </html>

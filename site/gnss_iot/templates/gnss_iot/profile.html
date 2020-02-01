@@ -1,92 +1,106 @@
-{% extends 'gnss_iot/base.html' %}
+{% load static %}
 
-{% block content %}
+{% load bootstrap4 %}
+{% load leaflet_tags %}
+
+{% bootstrap_css %}
+{% bootstrap_javascript jquery='full' %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Gnss Iot </title>
+
+    <link rel="stylesheet" href="{% static  'css/bootstrap4.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
 
-<div >
+    {% leaflet_js %}
+    {% leaflet_css %}
 
-        <div class="d-flex" id="wrapper">
+</head>
 
-                <!-- Sidebar -->
-                <div class="bg-light border-right" id="sidebar-wrapper">
-                  <div class="sidebar-heading">Gnss Iot </div>
-                  <div class="list-group list-group-flush">
-                    <a href="#" class="list-group-item list-group-item-action bg-light">Map</a>
-                    <a href="{% url 'gnss_iot:devices' %}" class="list-group-item list-group-item-action bg-light">Devices</a>
-                    <a href="#" class="list-group-item list-group-item-action bg-light">Overview</a>
-                    <a href="#" class="list-group-item list-group-item-action bg-light">Events</a>
-                    <a href="#" class="list-group-item list-group-item-action bg-light">Profile</a>
-                    <a href="#" class="list-group-item list-group-item-action bg-light">Status</a>
-                  </div>
+<body>
+    <div>
+
+        <div class="menu shadow-sm">
+            <nav class="shadow-sm">
+
+
+                <div class="enter-register ml-auto">
+
+                    <a class="nav-link" href="{% url 'user:logout' %}">Sair</a>
                 </div>
-                <!-- /#sidebar-wrapper -->
-            
-                <!-- Page Content -->
-                <div id="page-content-wrapper">
-            
-                  <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-                    <button class="my_navbar-toggler" type="button" id="menu-toggle"><span class="navbar-toggler-icon"></span></button>
-            
-                    <button id="menu-toggle" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                      <span class="navbar-toggler-icon"></span>
-                    </button>
-            
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                      <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
-                        <li class="nav-item dropdown">
-                          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                {{user.username.title}}
-                          </a>
-                          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="#">Action</a>
-                            <a class="dropdown-item" href="#">Another action</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="{% url 'user:logout' %} ">Logout<span class="sr-only">(current)</span></a>
-                          </div>
-                        </li>
-                      </ul>
-                    </div>
-                  </nav>
-            
-                  <div class="container-fluid">
-                    <h1 class="mt-4">Gnss Iot </h1>
-                    
 
 
-                  </div>
-                </div>
-                <!-- /#page-content-wrapper -->
-            
-              </div>
-              <!-- /#wrapper -->
+            </nav>
+        </div>
+    </div>
+
+    <div id='mapid'>
+    </div>
 
 
+    <script type="text/javascript">
 
+        const mymap = L.map('mapid', {
+            zoomControl: false
+        }).setView([-15.765940453, -47.872187540], 10);
+        const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+        const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        const tiles = L.tileLayer(tileUrl, { attribution });
 
+        L.control.zoom({
+            position: 'bottomright'
+        }).addTo(mymap);
 
+        tiles.addTo(mymap);
 
-    {% comment %} <form action="{% url 'gnss_iot:send' %}" method="POST">
-    
-        {% csrf_token %}
-        <label for="entrada">Mensagem:</label>
-        <textarea name="entrada" id="entrada" cols="30" rows="10"></textarea>
-        <br>
-        <input type="radio" name="genre" value="rock" checked="checked" >Rock
-            <input type="radio" name="genre" value="jazz">Jazz
-            <input type="radio" name="genre" value="pop">Pop
-        <button class="btn btn-lg btn-primary btn-block text-uppercase" name="submit"> Enviar </button> 
-        
-    </form> {% endcomment %}
+        const marker = L.marker([-15.765940453, -47.872187540]).addTo(mymap);
 
+        var loc = window.location
+        var wsStart = 'ws://'
 
-</div>
+        if (loc.protocol == 'https:') {
+            wsStart = 'wss://'
+        }
 
-  <!-- Menu Toggle Script -->
-<script>
-        $("#menu-toggle").click(function(e) {
-          e.preventDefault();
-          $("#wrapper").toggleClass("toggled");
+        var endpoint = wsStart + loc.host + loc.pathname
+
+        var socket = new WebSocket(endpoint)
+        socket.onmessage = function (e) {
+            console.log(e)
+            var dados_posicao = JSON.parse(e.data)
+            if (dados_posicao != null) {
+
+                var latitude = dados_posicao.coord[0]
+                var longitude = dados_posicao.coord[1]
+
+                marker.setLatLng([latitude, longitude]);
+                mymap.setView([latitude, longitude]);
+            }
+        }
+
+        setInterval(function () {
+            socket.send("Hello")
         });
-</script>
 
-{% endblock content %}
+
+        socket.onopen = function (e) {
+
+        }
+        socket.onerror = function (e) {
+            console.log("erro", e)
+        }
+        socket.onclose = function (e) {
+            console.log("close", e)
+        }
+
+    </script>
+</body>
+
+</html>

@@ -14,12 +14,12 @@
 
                         <form method="post" action="{% url 'user:register' %}" class="form-signin">
                             {% csrf_token %} {% bootstrap_form form layout='inline'%} {% buttons %}
-                            <button class="btn btn-lg btn-primary btn-block text-uppercase" name="submit"> Register </button> {% endbuttons %}
+                            <button class="btn btn-lg btn-primary btn-block text-uppercase" name="submit"> Registrar </button> {% endbuttons %}
                             <input type="hidden" name="next" value="{% url 'gnss_iot:index' %}" />
 
                         </form>
                         <hr class="my-3">
-                        <div class="text-center">Already have an account? <a href="{% url 'user:login' %}"> Login</a></div>
+                        <div class="text-center">Já tem uma conta? <a href="{% url 'user:login' %}"> Entrar</a></div>
 
                     </div>
                 </div>
