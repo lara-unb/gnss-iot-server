@@ -130,11 +130,3 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
-
-LEAFLET_CONFIG = {
-    # conf here
-    'DEFAULT_CENTER': (-15.765940453, -47.872187540),
-    'DEFAULT_ZOOM': 17,
-    'MIN_ZOOM': 2,
-    'MAX_ZOOM': 19,
-}

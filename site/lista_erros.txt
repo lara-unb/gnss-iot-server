@@ -5,3 +5,12 @@ LISTA DE ERROS PARA RESOLVER
 -> [OK] - Plotar dados no mapa
 -> [OK] - Tratar erro para servidor do site nao cair - ConnectionRefusedError - /gnss_iot_server/settings.py 
 -> [OK] - Escrever uma melhor conexão entre servidor e site 
+
+
+LISTA DE TAREFAS 
+
+-> [  ] - Apagar o token do arquivo / arrumar outro jeito de armazenar  
+-> [  ] - Mostrar todos os dispositivos no mapa principal
+-> [  ] - Mostrar o dispositivo no mapa individual
+-> [  ] - Fazer a parte de editar do dispositivo
+-> [  ] - Arrumar o erro de conexão com o handler 

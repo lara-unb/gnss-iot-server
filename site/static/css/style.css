@@ -7,11 +7,11 @@
   list-style: none;
 }
 
-nav {
+.nav-display {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 15vh;
+  height: 12vh;
 }
 
 main {
@@ -34,12 +34,25 @@ footer {
   padding-left: 10px;
   font-size: 20px;
   font-weight: bold;
+  
 }
 
 .logo a {
   display: block;
   padding: 10px;
 }
+
+
+.logo-sidebar span {
+  
+  padding-left: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+
 
 .logo a:hover {
   text-decoration: none;
@@ -63,40 +76,46 @@ footer {
 
 .nav-links a:hover {
   color: var(--primary);
+  
 }
 
 .enter-register {
   display: flex;
   margin-right: 25px;
 }
+.enter-register a:hover{
+  background-color: var(--primary);
+  color: white;
+  border-radius: 5px;
+}
 
-.content{
+.content {
   background-color: #d1d1d1;
   display: flex;
   height: 100%;
 }
 
+
 .menu {
-  position: fixed;
-  top: 10px;
   margin-left: 2.5%;
+  height: 10vh;
   width: 95%;
   border-radius: 5px;
   background-color: white;
   z-index: 2;
 }
 
-.menu nav {
-  height: 10vh;
-}
-
-
 #mapid {
   z-index: 1;
-  height: 100%;
+  height: 90%;
   width: 100%;
 }
-
+.list-group-item{
+  border: 0px;
+}
+.list-group a:hover{
+  color: var(--primary);
+}
 .card-signin {
   border: 0;
   border-radius: 1rem;
@@ -125,4 +144,47 @@ footer {
   padding: 1rem;
   transition: all 0.2s;
 }
+#sidebar-wrapper {
+  background-color: white;
+  min-height: 100vh;
+  margin-left: -15rem;
+  -webkit-transition: margin .25s ease-out;
+  -moz-transition: margin .25s ease-out;
+  -o-transition: margin .25s ease-out;
+  transition: margin .25s ease-out;
+}
 
+#sidebar-wrapper .sidebar-heading {
+  padding: 0.875rem 1.25rem;
+  font-size: 1.2rem;
+}
+
+
+#sidebar-wrapper .list-group {
+  width: 15rem;
+}
+
+#page-content-wrapper {
+  min-width: 100vw;
+}
+
+#page-content-wrapper nav {
+
+}
+
+#wrapper.toggled #sidebar-wrapper {
+  margin-left: 0;
+}
+
+@media (min-width: 768px) {
+  #sidebar-wrapper {
+    margin-left: 0;
+  }
+  #page-content-wrapper {
+    min-width: 0;
+    width: 100%;
+  }
+  #wrapper.toggled #sidebar-wrapper {
+    margin-left: -15rem;
+  }
+}

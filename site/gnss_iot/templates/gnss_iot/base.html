@@ -14,13 +14,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Gnss Iot </title>
-
-  <link rel="stylesheet" href="{% static  'css/bootstrap4.css' %}">
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
-
   {% leaflet_js %}
   {% leaflet_css %}
+
+  <link rel="shortcut icon" type="image/png" href="{% static 'img/global-logo.png' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static  'css/bootstrap4.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
 
   
 </head>
@@ -28,12 +29,12 @@
 <body>
   
   {% if not user.is_authenticated %}
-  <nav class="shadow-sm">
+  <nav class="shadow-sm nav-display ">
 
     <div class="logo">
 
       <a href=" {% url 'gnss_iot:index' %} ">
-        <img src="{% static 'img/global-logo.png' %}" alt="logo" height="65px" width="65px" >
+        <img src="{% static 'img/global-logo.png' %}" alt="logo" height="45px" width="45px" >
         <span>Gnss IoT</span>
       </a>
 
@@ -69,8 +70,6 @@
     {% block content %}
     {% endblock content %}
   </main>
-
-  
   <footer>
 
   </footer>

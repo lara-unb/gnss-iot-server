@@ -14,7 +14,6 @@ ids = ["3236D37B277EC67E4C49929986AC6CED"]
 
 def create_connection(ids, sel):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
     try:
         s.connect((HOST, PORT))
         s.setblocking(False)

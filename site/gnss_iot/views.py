@@ -62,6 +62,5 @@ def new_device(request):
 
 def save_token(user_token):
     file = os.path.join(BASE_DIR, 'tokens.txt')
-    print(type(user_token))
     with open(file, 'a') as file_object:
         file_object.write(user_token + '\n')

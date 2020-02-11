@@ -30,7 +30,6 @@ class GnssConsumer(SyncConsumer):
             if self.key.data != None:
                 data = get_data(self.key, self.mask, self.sel)
                 if data is not None:
-
                     self.send({
                         "type": "websocket.send",
                         "text": json.dumps(data),

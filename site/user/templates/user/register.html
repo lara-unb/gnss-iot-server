@@ -10,7 +10,7 @@
 
                 <div class="card card-signin my-5">
                     <div class="card-body">
-                        <h5 class="card-title text-center">Register </h5>
+                        <h5 class="card-title text-center">Registrar</h5>
 
                         <form method="post" action="{% url 'user:register' %}" class="form-signin">
                             {% csrf_token %} {% bootstrap_form form layout='inline'%} {% buttons %}

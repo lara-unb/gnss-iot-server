@@ -1,128 +1,66 @@
-{% extends 'gnss_iot/base.html' %}
+{% extends 'gnss_iot/base_profile.html' %}
 
 {% block content %}
 
+<div class="container-fluid">
+  {% if devices %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Devices</th>
+        <th scope="col">Token</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for device in devices %}
+      <tr>
+        <td> <a href="{% url 'gnss_iot:detail_device' device.id %}"> {{device.name}}</a> </td>
+        <td> {{device.token}}</td>
+        <td>
+          <a class="btn btn-primary" href="{% url 'gnss_iot:delete_device' device.id %}">Delete</a>
+          <!--
+            <a class="btn btn-primary" href="{% url 'gnss_iot:edit_device' device.id %}">Editar</a>
+          -->
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="mx-auto" style="width: 200px;">
+    <h1>No Device</h1>
+  </div>
+  {% endif %}
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newDevice" >Novo
+    Dispositivo</button>
 
-<div >
-
-        <div class="d-flex" id="wrapper">
-
-                <!-- Sidebar -->
-                <div class="bg-light border-right" id="sidebar-wrapper">
-                  <div class="sidebar-heading">Gnss Iot </div>
-                  <div class="list-group list-group-flush">
-                    <a href="#" class="list-group-item list-group-item-action bg-light">Map</a>
-                    <a href="{% url 'gnss_iot:devices' %}" class="list-group-item list-group-item-action bg-light">Devices</a>
-                    <a href="#" class="list-group-item list-group-item-action bg-light">Overview</a>
-                    <a href="#" class="list-group-item list-group-item-action bg-light">Events</a>
-                    <a href="#" class="list-group-item list-group-item-action bg-light">Profile</a>
-                    <a href="#" class="list-group-item list-group-item-action bg-light">Status</a>
-                  </div>
-                </div>
-                <!-- /#sidebar-wrapper -->
-            
-                <!-- Page Content -->
-                <div id="page-content-wrapper">
-            
-                  <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-                    <button class="my_navbar-toggler" type="button" id="menu-toggle"><span class="navbar-toggler-icon"></span></button>
-            
-                    <button id="menu-toggle" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                      <span class="navbar-toggler-icon"></span>
-                    </button>
-            
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                      <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
-                        <li class="nav-item dropdown">
-                          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                {{user.username.title}}
-                          </a>
-                          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="#">Action</a>
-                            <a class="dropdown-item" href="#">Another action</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="{% url 'user:logout' %} ">Logout<span class="sr-only">(current)</span></a>
-                          </div>
-                        </li>
-                      </ul>
-                    </div>
-                  </nav>
-            
-                  <div class="container-fluid">
-                    {% if devices %}
-                    <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                <th scope="col">Devices</th>
-                                <th scope="col">Token</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            {% for device in devices %}
-                                <tr>
-                                <td> <a href="{% url 'gnss_iot:detail_device' device.id %}"> {{device.name}}</a> </td>
-                                <td>  {{device.token}}</td>
-                                <td>
-                                <a class="btn btn-primary stretched-link" href="{% url 'gnss_iot:delete_device' device.id %}">Delete</a>
-                                </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                    </table>
-                    {% else %}
-                        <div class="mx-auto" style="width: 200px;">
-                            <h1>No Device</h1>
-                        </div>
-                    {% endif %}
-                    <button type="button" class="btn btn-primary stretched-link" data-toggle="modal" data-target="#newDevice" data-whatever="@mdo">New Device</button>
-                
-                <!-- Form new device-->
-                <div class="modal fade" id="newDevice" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">New Device</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                       <form method="post" action="{% url 'gnss_iot:new_device' %}" class="form-signin">
-                        <div class="form-group">
-                        {% csrf_token %}
-                            <label for="name" class="col-form-label">Name:</label>
-                            <input type="text" class="form-control"  name="name" id="name">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-primary" name="submit"> Create Device </button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    </div>
-                        </form>
-                    </div>
-                </div>
-                </div>
-                <!-- End Form new device-->  
-                  </div>
-                </div>
-                <!-- /#page-content-wrapper -->
-            
-              </div>
-              <!-- /#wrapper -->
-
-
+  <!-- Form new device-->
+  <div class="modal fade" id="newDevice" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Novo Dispositivo</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form method="post" action="{% url 'gnss_iot:new_device' %}" class="form-signin">
+            <div class="form-group">
+              {% csrf_token %}
+              <label for="name" class="col-form-label">Nome:</label>
+              <input type="text" class="form-control" name="name" id="name" required="required">
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" name="submit">Criar Dispositivo</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- End Form new device-->
 </div>
-
-  <!-- Menu Toggle Script -->
-<script>
-        $("#menu-toggle").click(function(e) {
-          e.preventDefault();
-          $("#wrapper").toggleClass("toggled");
-        });
-
-        $('#myModal').on('shown.bs.modal', function () {
-        $('#myInput').trigger('focus')
-        });
-</script>
-
 {% endblock content %}

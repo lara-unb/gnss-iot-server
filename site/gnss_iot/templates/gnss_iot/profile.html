@@ -1,106 +1,69 @@
-{% load static %}
+{% extends 'gnss_iot/base_profile.html' %}
 
-{% load bootstrap4 %}
-{% load leaflet_tags %}
+{% block content %}
 
-{% bootstrap_css %}
-{% bootstrap_javascript jquery='full' %}
+<div id="mapid">
+</div>
 
-<!DOCTYPE html>
-<html lang="pt-br">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Gnss Iot </title>
-
-    <link rel="stylesheet" href="{% static  'css/bootstrap4.css' %}">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+{% endblock content %}
 
 
-    {% leaflet_js %}
-    {% leaflet_css %}
+{% block script %}
+<script type="text/javascript">
 
-</head>
+  const mymap = L.map('mapid', {
+    zoomControl: false
+  }).setView([-15.765940453, -47.872187540], 10);
+  const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+  const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  const tiles = L.tileLayer(tileUrl, { attribution });
 
-<body>
-    <div>
+  L.control.zoom({
+    position: 'bottomright'
+  }).addTo(mymap);
+  mymap.options.minZoom = 2;
+  mymap.options.maxZoom = 18;
+  tiles.addTo(mymap);
 
-        <div class="menu shadow-sm">
-            <nav class="shadow-sm">
+  const marker = L.marker([-15.765940453, -47.872187540]).addTo(mymap);
 
+  var loc = window.location
+  var wsStart = 'ws://'
 
-                <div class="enter-register ml-auto">
+  if (loc.protocol == 'https:') {
+    wsStart = 'wss://'
+  }
 
-                    <a class="nav-link" href="{% url 'user:logout' %}">Sair</a>
-                </div>
+  var endpoint = wsStart + loc.host + loc.pathname
 
+  var socket = new WebSocket(endpoint)
+  socket.onmessage = function (e) {
+    console.log(e)
+    var dados_posicao = JSON.parse(e.data)
+    if (dados_posicao != null) {
 
-            </nav>
-        </div>
-    </div>
+      var latitude = dados_posicao.coord[0]
+      var longitude = dados_posicao.coord[1]
 
-    <div id='mapid'>
-    </div>
+      marker.setLatLng([latitude, longitude]);
+      mymap.setView([latitude, longitude]);
+    }
+  }
 
-
-    <script type="text/javascript">
-
-        const mymap = L.map('mapid', {
-            zoomControl: false
-        }).setView([-15.765940453, -47.872187540], 10);
-        const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-        const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-        const tiles = L.tileLayer(tileUrl, { attribution });
-
-        L.control.zoom({
-            position: 'bottomright'
-        }).addTo(mymap);
-
-        tiles.addTo(mymap);
-
-        const marker = L.marker([-15.765940453, -47.872187540]).addTo(mymap);
-
-        var loc = window.location
-        var wsStart = 'ws://'
-
-        if (loc.protocol == 'https:') {
-            wsStart = 'wss://'
-        }
-
-        var endpoint = wsStart + loc.host + loc.pathname
-
-        var socket = new WebSocket(endpoint)
-        socket.onmessage = function (e) {
-            console.log(e)
-            var dados_posicao = JSON.parse(e.data)
-            if (dados_posicao != null) {
-
-                var latitude = dados_posicao.coord[0]
-                var longitude = dados_posicao.coord[1]
-
-                marker.setLatLng([latitude, longitude]);
-                mymap.setView([latitude, longitude]);
-            }
-        }
-
-        setInterval(function () {
-            socket.send("Hello")
-        });
+  setInterval(function () {
+    socket.send("Hello")
+  });
 
 
-        socket.onopen = function (e) {
+  socket.onopen = function (e) {
 
-        }
-        socket.onerror = function (e) {
-            console.log("erro", e)
-        }
-        socket.onclose = function (e) {
-            console.log("close", e)
-        }
+  }
+  socket.onerror = function (e) {
+    console.log("erro", e)
+  }
+  socket.onclose = function (e) {
+    console.log("close", e)
+  }
 
-    </script>
-</body>
-
-</html>
+</script>
+{% endblock script %}
