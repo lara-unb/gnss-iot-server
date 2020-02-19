@@ -3,7 +3,7 @@ from secrets import token_hex
 import os
 from gnss_iot_server.settings import BASE_DIR
 from django.shortcuts import render, redirect, reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from .forms import DeviceForm
@@ -55,12 +55,14 @@ def new_device(request):
     new_device.name = request.POST['name']
     new_device.owner = request.user
     new_device.token = token_hex(16).upper()
-    save_token(new_device.token)
     new_device.save()
     return redirect('gnss_iot:devices')
 
-
-def save_token(user_token):
-    file = os.path.join(BASE_DIR, 'tokens.txt')
-    with open(file, 'a') as file_object:
-        file_object.write(user_token + '\n')
+def resposta_json(request, device_id):
+    
+    device = Device.objects.filter(token=device_id)
+    print(device)
+    if device:
+        return HttpResponse("OK")    
+    else:
+        return HttpResponse("FAILED")

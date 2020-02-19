@@ -9,8 +9,8 @@ LISTA DE ERROS PARA RESOLVER
 
 LISTA DE TAREFAS 
 
--> [  ] - Apagar o token do arquivo / arrumar outro jeito de armazenar  
--> [  ] - Mostrar todos os dispositivos no mapa principal
--> [  ] - Mostrar o dispositivo no mapa individual
+-> [OK] - Apagar o token do arquivo / arrumar outro jeito de armazenar
+-> [OK] - Mostrar todos os dispositivos no mapa principal
+-> [  ] - Mostrar o dispositivo no mapa individual com informações
 -> [  ] - Fazer a parte de editar do dispositivo
--> [  ] - Arrumar o erro de conexão com o handler 
+-> [  ] - Mundar o handler de Python para C

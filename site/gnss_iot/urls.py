@@ -4,7 +4,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('',views.index, name='index'),
+    path('', views.index, name='index'),
+    path('profile/resposta/<slug:device_id>', views.resposta_json, name='resposta'),
     path('profile/<int:user_id>/', views.profile, name='profile'),
     path('profile/devices/', views.devices, name='devices'),
     path('profile/new_device/', views.new_device, name='new_device'),

@@ -15,55 +15,77 @@
 
 <script type="text/javascript">
 
-    const mymap = L.map('mapid').setView([-15.765940453, -47.872187540], 10);
-    const attribution =
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+  const mymap = L.map('mapid', {
+    zoomControl: false
+  }).setView([-15.765940453, -47.872187540], 10);
+  const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+  const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  const tiles = L.tileLayer(tileUrl, { attribution });
 
-    const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    const tiles = L.tileLayer(tileUrl, { attribution });
-    tiles.addTo(mymap);
+  L.control.zoom({
+    position: 'bottomright'
+  }).addTo(mymap);
+  mymap.options.minZoom = 2;
+  mymap.options.maxZoom = 18;
+  tiles.addTo(mymap);
 
-    // Making a marker with a custom icon
-    const marker = L.marker([-15.765940453, -47.872187540]).addTo(mymap);
+  const devices_list = [];
+  const id_list = [];
 
-    var loc = window.location
-    var wsStart = 'ws://'
+  var loc = window.location
+  var wsStart = 'ws://'
 
-    if (loc.protocol == 'https:') {
-        wsStart = 'wss://'
-    }
+  if (loc.protocol == 'https:') {
+    wsStart = 'wss://'
+  }
 
-    var endpoint = wsStart + loc.host + loc.pathname
+  var endpoint = wsStart + loc.host + loc.pathname
 
-    var socket = new WebSocket(endpoint)
-    socket.onmessage = function (e) {
-        console.log(e)
-        var dados_posicao = JSON.parse(e.data)
-        if (dados_posicao != null) {
+  var socket = new WebSocket(endpoint)
+  socket.onmessage = function (e) {
+    console.log(e)
 
-            var latitude = dados_posicao.coord[0]
-            var longitude = dados_posicao.coord[1]
+    var dados_posicao = JSON.parse(e.data)
+    if (dados_posicao != null) {
 
-            marker.setLatLng([latitude, longitude]);
-            mymap.setView([latitude, longitude]);
+      dados_posicao.forEach(element => {
+        if (id_list.includes(element.id)) {
+          devices_list.forEach(device => {
+            console.log(devices_list.length )
+            if (device[0] == element.id) {
+              device[1].setLatLng(element.coord);
+              mymap.setView(element.coord);
+            }
+          });
+
+        } else {
+          id_list.push(element.id)
+          devices_list.push([element.id, L.marker(element.coord).bindPopup(element.name).addTo(mymap)]);
         }
-    }
-
-    setInterval(function () {
-        socket.send("Hello")
-    });
 
 
-    socket.onopen = function (e) {
 
+      });
+
+      // marker.setLatLng([latitude, longitude]);
+      
     }
-    socket.onerror = function (e) {
-        console.log("erro", e)
-    }
-    socket.onclose = function (e) {
-        console.log("close", e)
-    }
-    
+  }
+
+  setInterval(function () {
+    socket.send("Hello", 100)
+  });
+
+
+  socket.onopen = function (e) {
+
+  }
+  socket.onerror = function (e) {
+    console.log("erro", e)
+  }
+  socket.onclose = function (e) {
+    console.log("close", e)
+  }
+
 </script>
-
 {% endblock content %}

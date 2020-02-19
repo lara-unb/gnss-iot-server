@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/time.h> /*FD_SET, FD_ISSET, FD_ZERO macros*/
-
+#include <curl/curl.h>
 #include <binn.h>
 
 #define SERVIDOR 2
@@ -17,6 +17,7 @@
 #define ACESSO_NEGADO 0
 
 #define MAX_CLIENT 30
+#define MAX_DEVICE 30
 
 #define TRUE 1
 #define FALSE 0
@@ -30,39 +31,94 @@ typedef struct
     double coord[2];
 } device_t;
 
+typedef struct
+{
+    int file_description;
+    device_t device[MAX_DEVICE];
+
+} client_t;
+
+struct string
+{
+    char *ptr;
+    size_t len;
+};
+
+size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s);
+void init_string(struct string *s);
+int request(char *token_recebido);
 int token_check(char *token_recebido, int len);
 binn *serialize_device(device_t *device);
 void settings_socket(struct sockaddr_in *address, int *master_socket);
 void bind_socket(struct sockaddr_in *address, int *master_socket);
 void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen);
+void web_connection();
 
+void init_string(struct string *s)
+{
+    s->len = 0;
+    s->ptr = malloc(s->len + 1);
+    if (s->ptr == NULL)
+    {
+        fprintf(stderr, "malloc() failed\n");
+        exit(EXIT_FAILURE);
+    }
+    s->ptr[0] = '\0';
+}
+
+size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s)
+{
+    size_t new_len = s->len + size * nmemb;
+    s->ptr = realloc(s->ptr, new_len + 1);
+    if (s->ptr == NULL)
+    {
+        fprintf(stderr, "realloc() failed\n");
+        exit(EXIT_FAILURE);
+    }
+    memcpy(s->ptr + s->len, ptr, size * nmemb);
+    s->ptr[new_len] = '\0';
+    s->len = new_len;
+
+    return size * nmemb;
+}
+
+int request(char *token_recebido)
+{
+    CURL *curl;
+    CURLcode res;
+    curl = curl_easy_init();
+    if (curl)
+    {
+        struct string s;
+        init_string(&s);
+        char url[71] = {"http://localhost:8000/profile/resposta/"};
+        strcat(url, token_recebido);
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
+        res = curl_easy_perform(curl);
+
+        if (!(strcmp("OK", s.ptr)))
+        {
+            free(s.ptr);
+            curl_easy_cleanup(curl);
+            return ACESSO_PERMITIDO;
+        }
+        else
+            return ACESSO_NEGADO;
+    }
+    return ACESSO_NEGADO;
+}
 
 int token_check(char *token_recebido, int len)
 {
-    FILE *fp;
-    char token_registrado[32];
-    char *file_name = "tokens.txt";
 
     if (!(strcmp("TOKENSERVIDOR", token_recebido)))
         return SERVIDOR;
-
-    if ((fp = fopen(file_name, "r")) == NULL)
-    {
-        printf("Arquivo não pode ser aberto\n");
-        exit(EXIT_FAILURE);
-    }
-    while (fgets(token_registrado, 33, fp) != NULL)
-    {
-        token_registrado[32] = '\0';
-        if (!(strcmp(token_registrado, token_recebido)))
-        {
-            fclose(fp);
-            return ACESSO_PERMITIDO;
-        }
-    }
-
-    fclose(fp);
-    return ACESSO_NEGADO;
+    if (request(token_recebido))
+        return ACESSO_PERMITIDO;
+    else
+        return ACESSO_NEGADO;
 }
 
 binn *serialize_device(device_t *device)
@@ -159,6 +215,21 @@ void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen
     puts("Waiting for connections ...");
 }
 
+// void web_connection(int sock)
+// {
+//     char buffer[1024];
+//     int valread;
+
+//     while (1)
+//     {
+//         valread = read(sock, buffer, 1024);
+//         buffer[valread] = '\0';
+//         if ((!(strcmp("none", buffer))) || !(buffer) )
+//             break;
+//         printf("ID: %s \n", buffer);
+//     }
+// }
+
 int main(int argc, char *argv[])
 {
     int master_socket = 0, addrlen = 0, new_socket = 0;
@@ -172,6 +243,7 @@ int main(int argc, char *argv[])
     struct sockaddr_in address;
 
     device_t devices[MAX_CLIENT];
+    client_t clientes[MAX_CLIENT];
 
     binn *data_device, *data_server;
 
@@ -184,6 +256,7 @@ int main(int argc, char *argv[])
     for (i = 0; i < MAX_CLIENT; i++)
     {
         client_socket[i] = 0;
+        clientes[i].file_description = 0;
         devices[i].autenticacao = ACESSO_NEGADO;
     }
 
@@ -291,6 +364,7 @@ int main(int argc, char *argv[])
 
                 case SERVIDOR:
                     server_fd = new_socket;
+                    // web_connection(new_socket);
                     printf("Servidor conectado\n");
                     break;
                 }

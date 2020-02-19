@@ -9,9 +9,6 @@ HOST = '127.0.0.1'
 PORT = 9999
 
 
-ids = ["3236D37B277EC67E4C49929986AC6CED"]
-
-
 def create_connection(ids, sel):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
@@ -35,7 +32,6 @@ def get_data(key, mask, sel):
         dados = sock.recv(1024)
         if dados:
             dados = pickle.loads(dados)
-            print(dados)
             return dados
         else:
             sel.unregister(sock)

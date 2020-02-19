@@ -7,7 +7,7 @@
   <table class="table table-striped">
     <thead>
       <tr>
-        <th scope="col">Devices</th>
+        <th scope="col">Dispositivos</th>
         <th scope="col">Token</th>
       </tr>
     </thead>
@@ -17,10 +17,16 @@
         <td> <a href="{% url 'gnss_iot:detail_device' device.id %}"> {{device.name}}</a> </td>
         <td> {{device.token}}</td>
         <td>
-          <a class="btn btn-primary" href="{% url 'gnss_iot:delete_device' device.id %}">Delete</a>
-          <!--
-            <a class="btn btn-primary" href="{% url 'gnss_iot:edit_device' device.id %}">Editar</a>
-          -->
+          <a class="btn btn-primary" href="{% url 'gnss_iot:delete_device' device.id %}">
+            <i class="material-icons">
+              delete_outline
+            </i>
+          </a>
+
+          <!-- <a class="btn btn-primary" href="{% url 'gnss_iot:edit_device' device.id %}">
+            <i class="material-icons">edit</i></a>
+          </a> -->
+
         </td>
       </tr>
       {% endfor %}
@@ -31,9 +37,9 @@
     <h1>No Device</h1>
   </div>
   {% endif %}
-  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newDevice" >Novo
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newDevice">Novo
     Dispositivo</button>
-
+  </div>
   <!-- Form new device-->
   <div class="modal fade" id="newDevice" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
     aria-hidden="true">
@@ -62,5 +68,5 @@
     </div>
   </div>
   <!-- End Form new device-->
-</div>
+
 {% endblock content %}
