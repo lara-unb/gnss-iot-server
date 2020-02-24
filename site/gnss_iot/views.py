@@ -58,10 +58,8 @@ def new_device(request):
     new_device.save()
     return redirect('gnss_iot:devices')
 
-def resposta_json(request, device_id):
-    
+def authentication(request, device_id):
     device = Device.objects.filter(token=device_id)
-    print(device)
     if device:
         return HttpResponse("OK")    
     else:

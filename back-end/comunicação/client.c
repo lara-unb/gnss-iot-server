@@ -19,20 +19,16 @@ typedef struct
     double coord[2];
 } device_t;
 
-
 binn *serialize(device_t *device)
 {
-    binn *data, *coord;
-    data = binn_object();
+    binn *coord;
 
     coord = binn_list();
     binn_list_add_double(coord, device->coord[0]);
     binn_list_add_double(coord, device->coord[1]);
+    binn_list_add_str(coord, device->token);
 
-    binn_object_set_list(data, "coord", coord);
-    binn_free(coord);
-
-    return data;
+    return coord;
 }
 
 int main(int argc, char const *argv[])
@@ -43,12 +39,11 @@ int main(int argc, char const *argv[])
 
     device_t device;
 
-    device.token = "1B45990F3A5F1EA598530A47606872AP";
+    device.token = "5285A561081883ACCBAD522BAAB7CBB5";
 
     device.coord[0] = -15.765940453;
     device.coord[1] = -47.872187540;
 
-    char buffer[1024] = {0};
     struct sockaddr_in serv_addr;
 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -72,9 +67,6 @@ int main(int argc, char const *argv[])
         printf("\nConnection Failed \n");
         return -1;
     }
-
-    read(sock, buffer, 1024);
-    printf("%s\n", buffer);
     send(sock, device.token, strlen(device.token), 0);
     printf("%s\n", device.token);
 
@@ -87,15 +79,11 @@ int main(int argc, char const *argv[])
         send(sock, binn_ptr(data), binn_size(data), 0);
         read(sock, binn_ptr(data), binn_size(data));
 
-        void *list = binn_object_list(data, "coord");
-
-
-        device.coord[0] = binn_list_double(list, 1);
-        device.coord[1] = binn_list_double(list, 2);
+        device.coord[0] = binn_list_double(data, 1);
+        device.coord[1] = binn_list_double(data, 2);
         printf("%lf %lf\n", device.coord[0], device.coord[1]);
 
         sleep(1);
-        
     }
 
     close(sock);

@@ -10,7 +10,6 @@ def login_view(request):
     if request.method == 'POST':
         authenticate_user = authenticate(username=request.POST['username'], password=request.POST['password'])
         login(request, authenticate_user)
-
         return redirect('gnss_iot:index')
 
     return render(request, 'user/login.html')

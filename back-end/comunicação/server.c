@@ -12,12 +12,13 @@
 #include <curl/curl.h>
 #include <binn.h>
 
-#define SERVIDOR 2
-#define ACESSO_PERMITIDO 1
 #define ACESSO_NEGADO 0
+#define ACESSO_PERMITIDO 1
+#define SERVIDOR 2
 
-#define MAX_CLIENT 30
-#define MAX_DEVICE 30
+#define MAX_CLIENT 5
+#define MAX_DEVICE 5
+#define BUFFER_SIZE 1024
 
 #define TRUE 1
 #define FALSE 0
@@ -29,6 +30,7 @@ typedef struct
     int file_description;
     int autenticacao;
     double coord[2];
+
 } device_t;
 
 typedef struct
@@ -52,7 +54,7 @@ binn *serialize_device(device_t *device);
 void settings_socket(struct sockaddr_in *address, int *master_socket);
 void bind_socket(struct sockaddr_in *address, int *master_socket);
 void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen);
-void web_connection();
+void web_connection(int sock, client_t *clientes);
 
 void init_string(struct string *s)
 {
@@ -91,7 +93,7 @@ int request(char *token_recebido)
     {
         struct string s;
         init_string(&s);
-        char url[71] = {"http://localhost:8000/profile/resposta/"};
+        char url[71] = {"http://localhost:8000/authentication/"};
         strcat(url, token_recebido);
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
@@ -123,17 +125,14 @@ int token_check(char *token_recebido, int len)
 
 binn *serialize_device(device_t *device)
 {
-    binn *data, *coord;
-    data = binn_object();
+    binn *coord;
 
     coord = binn_list();
     binn_list_add_double(coord, device->coord[0]);
     binn_list_add_double(coord, device->coord[1]);
+    binn_list_add_str(coord, device->token);
 
-    binn_object_set_list(data, "coord", coord);
-    binn_free(coord);
-
-    return data;
+    return coord;
 }
 
 binn *serialize_server(device_t *device)
@@ -162,6 +161,19 @@ binn *serialize_server(device_t *device)
     binn_free(coord);
 
     return data;
+}
+
+binn *serialize_web()
+{
+
+    binn *list;
+    int i;
+    list = binn_list();
+
+    for (i = 0; i < MAX_DEVICE; i++)
+        binn_list_add_str(list, "00000000000000000000000000000000");
+
+    return list;
 }
 
 void settings_socket(struct sockaddr_in *address, int *master_socket)
@@ -215,34 +227,64 @@ void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen
     puts("Waiting for connections ...");
 }
 
-// void web_connection(int sock)
-// {
-//     char buffer[1024];
-//     int valread;
+void web_connection(int sock, client_t *clientes)
+{
+    int i, j;
+    binn *data_web;
+    data_web = serialize_web();
+    binn_iter iter;
+    binn value;
+    if ((read(sock, binn_ptr(data_web), BUFFER_SIZE)) != 0)
+    {
+        for (j = 0; j < MAX_CLIENT; j++)
+        {
+            if (clientes[j].file_description == 0)
+            {
+                clientes[j].file_description = sock;
+                binn_list_foreach(data_web, value)
+                {
+                    for (i = 0; i < MAX_DEVICE; i++)
+                    {
+                        if (strcmp(clientes[j].device[i].token, "false") == 0)
+                        {
+                            strcpy(clientes[j].device[i].token, value.ptr);
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
+    else
+        close(sock);
 
-//     while (1)
-//     {
-//         valread = read(sock, buffer, 1024);
-//         buffer[valread] = '\0';
-//         if ((!(strcmp("none", buffer))) || !(buffer) )
-//             break;
-//         printf("ID: %s \n", buffer);
-//     }
-// }
+    for (j = 0; j < MAX_CLIENT; j++)
+    {
+        printf("\n\n");
+        printf("SD: %d\n", clientes[j].file_description);
+        for (i = 0; i < MAX_DEVICE; i++)
+        {
+            printf("TOKEN: %s\n", clientes[j].device[i].token);
+        }
+    }
+
+    binn_free(data_web);
+}
 
 int main(int argc, char *argv[])
 {
     int master_socket = 0, addrlen = 0, new_socket = 0;
-    int activity = 0, i = 0, valread = 0, sd = 0, max_sd = 0;
-    int server_fd = 0, x = 0;
+    int activity = 0, i = 0, j = 0, k = 0, valread = 0, sd = 0, max_sd = 0;
+    int x = 0;
 
     int client_socket[MAX_CLIENT];
 
-    char buffer[1025];
+    char buffer[BUFFER_SIZE];
 
     struct sockaddr_in address;
 
-    device_t devices[MAX_CLIENT];
+    device_t devices[MAX_DEVICE];
     client_t clientes[MAX_CLIENT];
 
     binn *data_device, *data_server;
@@ -250,16 +292,19 @@ int main(int argc, char *argv[])
     /*set of socket descriptors*/
     fd_set readfds;
 
-    char *message = "Servidor GNSS - LARA  v1.0\n";
-
     /*initialise all client_socket[] to 0 so not checked*/
     for (i = 0; i < MAX_CLIENT; i++)
     {
         client_socket[i] = 0;
         clientes[i].file_description = 0;
+        for (j = 0; j < MAX_DEVICE; j++)
+        {
+
+            clientes[i].device[j].file_description = 0;
+            strcpy(clientes[i].device[j].token, "false");
+        }
         devices[i].autenticacao = ACESSO_NEGADO;
     }
-
     settings_socket(&address, &master_socket);
     bind_socket(&address, &master_socket);
     listen_socket(&address, &master_socket, &addrlen);
@@ -311,15 +356,7 @@ int main(int argc, char *argv[])
             /*inform user of socket number - used in send and receive commands*/
             printf("New connection , socket fd is %d , ip is: %s , port: %d\n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
-            /*send new connection greeting message*/
-            if (send(new_socket, message, strlen(message), 0) != strlen(message))
-            {
-                perror("enviar");
-            }
-
-            puts("Welcome message sent successfully");
-
-            if ((valread = read(new_socket, buffer, 1024)) != 0)
+            if ((valread = read(new_socket, buffer, BUFFER_SIZE)) != 0)
             {
 
                 buffer[valread] = '\0';
@@ -363,8 +400,7 @@ int main(int argc, char *argv[])
                     break;
 
                 case SERVIDOR:
-                    server_fd = new_socket;
-                    // web_connection(new_socket);
+                    web_connection(new_socket, clientes);
                     printf("Servidor conectado\n");
                     break;
                 }
@@ -384,27 +420,37 @@ int main(int argc, char *argv[])
                 data_device = serialize_device(&devices[i]);
                 if ((read(sd, binn_ptr(data_device), binn_size(data_device))) != 0)
                 {
-                    void *list = binn_object_list(data_device, "coord");
 
-                    devices[i].coord[0] = binn_list_double(list, 1);
-                    devices[i].coord[1] = binn_list_double(list, 2);
-                    devices[i].coord[0] = 0.01 + devices[i].coord[0];
-                    devices[i].coord[1] = 0.01 + devices[i].coord[1];
+                    devices[i].coord[0] = binn_list_double(data_device, 1);
+                    devices[i].coord[1] = binn_list_double(data_device, 2);
+                    devices[i].coord[0] = 0.0001 + devices[i].coord[0];
+                    devices[i].coord[1] = 0.0001 + devices[i].coord[1];
                     printf("%lf %lf\n", devices[i].coord[0], devices[i].coord[1]);
                     printf("%s\n", devices[i].token);
                     data_device = serialize_device(&devices[i]);
 
-                    if (server_fd)
+                    for (j = 0; j < MAX_CLIENT; j++)
                     {
-                        data_server = serialize_server(&devices[i]);
-
-                        if ((send(server_fd, binn_ptr(data_server), binn_size(data_server), MSG_NOSIGNAL)) == -1)
+                        if (clientes[j].file_description)
                         {
-                            printf("SERVIDOR WEB DESCONECTADO...\n");
-                            close(server_fd);
-                            server_fd = 0;
+                            for (k = 0; k < MAX_DEVICE; k++)
+                            {
+                                if (!(strcmp(clientes[j].device[k].token, devices[i].token)))
+                                {
+
+                                    data_server = serialize_server(&devices[i]);
+                                    if ((send(clientes[j].file_description, binn_ptr(data_server), binn_size(data_server), MSG_NOSIGNAL)) == -1)
+                                    {
+                                        printf("Cliente Web Desconectado...\n");
+                                        close(clientes[j].file_description);
+                                        clientes[j].file_description = 0;
+                                        
+                                    }
+                                    binn_free(data_server);
+                                    break;
+                                }
+                            }
                         }
-                        binn_free(data_server);
                     }
 
                     send(sd, binn_ptr(data_device), binn_size(data_device), 0);

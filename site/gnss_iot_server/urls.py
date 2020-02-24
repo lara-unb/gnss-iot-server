@@ -15,11 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-
+from gnss_iot.views import authentication
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',include(('gnss_iot.urls', 'gnss_iot'), namespace='gnss_iot')),
     path('user/',include(('user.urls','user'), namespace='user')),
+    path('authentication/<slug:device_id>',authentication, name='authentication')
 ]

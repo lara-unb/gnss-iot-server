@@ -83,7 +83,7 @@ def data_server(sock):
                 print(data)
                 return data
             except:
-            	print("Deu erro aqui !")
+                print("Deu erro aqui !")
         else:
             r[0].close()
             return None
@@ -104,7 +104,7 @@ if __name__ == "__main__":
                 else:
                     service_connection(key, mask, data)
     except KeyboardInterrupt:
-        
+
         print("Handler off...")
     finally:
         sel.close()
