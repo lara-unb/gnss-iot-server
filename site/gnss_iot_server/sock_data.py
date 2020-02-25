@@ -19,6 +19,7 @@ def create_connection(ids, sel):
         data = types.SimpleNamespace(data_in=[], data_out=[])
         sel.register(s, events, data=data)
         s.send(token.encode())
+        ids.append("none")
         s.send(pybinn.dumps(ids))
 
     except ConnectionRefusedError as erro_connection:

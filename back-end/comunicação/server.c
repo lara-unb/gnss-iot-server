@@ -16,8 +16,8 @@
 #define ACESSO_PERMITIDO 1
 #define SERVIDOR 2
 
-#define MAX_CLIENT 5
-#define MAX_DEVICE 5
+#define MAX_CLIENT 10
+#define MAX_DEVICE 10
 #define BUFFER_SIZE 1024
 
 #define TRUE 1
@@ -98,15 +98,21 @@ int request(char *token_recebido)
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
         res = curl_easy_perform(curl);
-
-        if (!(strcmp("OK", s.ptr)))
+        if (res == CURLE_OK)
         {
-            free(s.ptr);
-            curl_easy_cleanup(curl);
-            return ACESSO_PERMITIDO;
+            if (!(strcmp("OK", s.ptr)))
+            {
+                free(s.ptr);
+                curl_easy_cleanup(curl);
+                return ACESSO_PERMITIDO;
+            }
+            else
+            {
+                curl_easy_cleanup(curl);
+                return ACESSO_NEGADO;
+            }
         }
-        else
-            return ACESSO_NEGADO;
+        curl_easy_cleanup(curl);
     }
     return ACESSO_NEGADO;
 }
@@ -228,7 +234,8 @@ void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen
 
 void web_connection(int sock, client_t *clientes)
 {
-    int i, j;
+    int i, j, x = 1;
+    int quantidade;
     binn *data_web;
     data_web = serialize_web();
     binn_iter iter;
@@ -240,16 +247,19 @@ void web_connection(int sock, client_t *clientes)
             if (clientes[j].file_description == 0)
             {
                 clientes[j].file_description = sock;
-                binn_list_foreach(data_web, value)
+
+                while (strcmp(binn_list_str(data_web, x), "none") != 0)
                 {
+
                     for (i = 0; i < MAX_DEVICE; i++)
                     {
                         if (strcmp(clientes[j].device[i].token, "false") == 0)
                         {
-                            strcpy(clientes[j].device[i].token, value.ptr);
+                            strcpy(clientes[j].device[i].token, binn_list_str(data_web, x));
                             break;
                         }
                     }
+                    x++;
                 }
                 break;
             }
@@ -408,17 +418,14 @@ int main(int argc, char *argv[])
                 }
             }
         }
-
         /*else its some IO operation on some other socket*/
         for (i = 0; i < MAX_CLIENT; i++)
         {
             sd = client_socket[i];
-
             if (FD_ISSET(sd, &readfds))
             {
                 /*Check if it was for closing , and also read the*/
                 /*incoming message*/
-
                 data_device = serialize_device(&devices[i]);
                 if ((read(sd, binn_ptr(data_device), binn_size(data_device))) != 0)
                 {
