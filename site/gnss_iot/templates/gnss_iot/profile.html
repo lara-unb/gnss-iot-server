@@ -46,8 +46,8 @@
 
       dados_posicao.forEach(element => {
         if (id_list.includes(element.id)) {
+          console.log(devices_list)
           devices_list.forEach(device => {
-            console.log(devices_list.length )
             if (device[0] == element.id) {
               device[1].setLatLng(element.coord);
             }
@@ -76,10 +76,13 @@
 
   }
   socket.onerror = function (e) {
-    console.log("erro", e)
+    console.log("erro", e);
   }
   socket.onclose = function (e) {
-    console.log("close", e)
+    devices_list = [];
+    id_list = [];
+    console.log("close", e);
+
   }
 
 </script>

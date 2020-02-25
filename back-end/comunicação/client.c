@@ -39,7 +39,7 @@ int main(int argc, char const *argv[])
 
     device_t device;
 
-    device.token = "5285A561081883ACCBAD522BAAB7CBB5";
+    strcpy(device.token,"975F55D739371738148AC542ACD88F36");
 
     device.coord[0] = -15.765940453;
     device.coord[1] = -47.872187540;

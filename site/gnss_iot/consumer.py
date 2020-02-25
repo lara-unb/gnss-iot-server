@@ -9,11 +9,6 @@ from channels.generic.websocket import WebsocketConsumer
 from channels.consumer import AsyncConsumer, SyncConsumer
 from gnss_iot_server.sock_data import create_connection, get_data
 
-ids = []
-
-devices_id = []
-devices_list = []
-
 
 class GnssConsumer(SyncConsumer):
 
@@ -24,43 +19,45 @@ class GnssConsumer(SyncConsumer):
         })
         self.sel = selectors.DefaultSelector()
         devices = get_device(self.scope["user"])
-        ids = []
+        self.ids = []
+        self.devices_id = []
+        self.devices_list = []
         for device in devices:
-            ids.append(device.token)
-
-        create_connection(ids, self.sel)
+            self.ids.append(device.token)
+        create_connection(self.ids, self.sel)
 
     def websocket_receive(self, event):
-        print("receive", event)
 
         events = self.sel.select(timeout=None)
         for self.key, self.mask in events:
             if self.key.data != None:
                 data = get_data(self.key, self.mask, self.sel)
                 if data is not None:
-                    if data['id'] not in devices_id:
+                    if data['id'] not in self.devices_id:
                         devices = get_device(self.scope["user"])
                         for device in devices:
                             if device.token == data['id']:
                                 data['name'] = device.name
-                        devices_list.append(data)
-                        devices_id.append(data['id'])
+                        self.devices_list.append(data)
+                        self.devices_id.append(data['id'])
 
                     else:
-                        for i in devices_list:
+                        for i in self.devices_list:
                             if i['id'] == data['id']:
                                 i['coord'][0] = data['coord'][0]
                                 i['coord'][1] = data['coord'][1]
                     print(data)
-                    print(devices_list)
+                    print(self.devices_list)
 
                     self.send({
                         "type": "websocket.send",
-                        "text": json.dumps(devices_list),
+                        "text": json.dumps(self.devices_list),
                     })
 
     def websocket_disconnect(self, event):
-        ids = []
+        self.ids = []
+        self.devices_id = []
+        self.devices_list = []
         print("disconnect", event)
         self.sel.unregister(self.key.fileobj)
         self.key.fileobj.close()

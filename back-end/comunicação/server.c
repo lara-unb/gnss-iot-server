@@ -28,7 +28,6 @@ typedef struct
 {
     char token[32];
     int file_description;
-    int autenticacao;
     double coord[2];
 
 } device_t;
@@ -117,7 +116,7 @@ int token_check(char *token_recebido, int len)
 
     if (!(strcmp("TOKENSERVIDOR", token_recebido)))
         return SERVIDOR;
-    if (request(token_recebido))
+    else if (request(token_recebido))
         return ACESSO_PERMITIDO;
     else
         return ACESSO_NEGADO;
@@ -234,7 +233,7 @@ void web_connection(int sock, client_t *clientes)
     data_web = serialize_web();
     binn_iter iter;
     binn value;
-    if ((read(sock, binn_ptr(data_web), BUFFER_SIZE)) != 0)
+    if ((read(sock, binn_ptr(data_web), binn_size(data_web))) != 0)
     {
         for (j = 0; j < MAX_CLIENT; j++)
         {
@@ -293,18 +292,22 @@ int main(int argc, char *argv[])
     fd_set readfds;
 
     /*initialise all client_socket[] to 0 so not checked*/
-    for (i = 0; i < MAX_CLIENT; i++)
+    for (i = 0; i < MAX_DEVICE; i++)
     {
         client_socket[i] = 0;
+        devices[i].file_description = 0;
+    }
+
+    for (i = 0; i < MAX_CLIENT; i++)
+    {
         clientes[i].file_description = 0;
         for (j = 0; j < MAX_DEVICE; j++)
         {
-
             clientes[i].device[j].file_description = 0;
             strcpy(clientes[i].device[j].token, "false");
         }
-        devices[i].autenticacao = ACESSO_NEGADO;
     }
+
     settings_socket(&address, &master_socket);
     bind_socket(&address, &master_socket);
     listen_socket(&address, &master_socket, &addrlen);
@@ -376,9 +379,8 @@ int main(int argc, char *argv[])
                             if (client_socket[i] == 0)
                             {
                                 client_socket[i] = new_socket;
-                                printf("Adding to list of sockets as %d\n", i);
                                 devices[i].file_description = new_socket;
-                                devices[i].autenticacao = ACESSO_PERMITIDO;
+                                printf("Adding to list of sockets as %d\n", i);
                                 strcpy(devices[i].token, buffer);
 
                                 break;
@@ -437,14 +439,14 @@ int main(int argc, char *argv[])
                             {
                                 if (!(strcmp(clientes[j].device[k].token, devices[i].token)))
                                 {
-
                                     data_server = serialize_server(&devices[i]);
                                     if ((send(clientes[j].file_description, binn_ptr(data_server), binn_size(data_server), MSG_NOSIGNAL)) == -1)
                                     {
                                         printf("Cliente Web Desconectado...\n");
                                         close(clientes[j].file_description);
                                         clientes[j].file_description = 0;
-                                        
+                                        for (x = 0; x < MAX_DEVICE; x++)
+                                            strcpy(clientes[j].device[x].token, "false");
                                     }
                                     binn_free(data_server);
                                     break;
@@ -464,7 +466,6 @@ int main(int argc, char *argv[])
                            inet_ntoa(address.sin_addr), ntohs(address.sin_port));
                     close(sd);
                     client_socket[i] = 0;
-                    devices[i].autenticacao = 0;
                 }
             }
         }
