@@ -13,4 +13,4 @@ LISTA DE TAREFAS
 -> [OK] - Mostrar todos os dispositivos no mapa principal
 -> [  ] - Mostrar o dispositivo no mapa individual com informações
 -> [  ] - Fazer a parte de editar do dispositivo
--> [  ] - Mundar o handler de Python para C
+-> [OK] - Mundar o handler de Python para C

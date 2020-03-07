@@ -39,34 +39,47 @@
   {% endif %}
   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newDevice">Novo
     Dispositivo</button>
-  </div>
-  <!-- Form new device-->
-  <div class="modal fade" id="newDevice" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Novo Dispositivo</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form method="post" action="{% url 'gnss_iot:new_device' %}" class="form-signin">
-            <div class="form-group">
-              {% csrf_token %}
-              <label for="name" class="col-form-label">Nome:</label>
-              <input type="text" class="form-control" name="name" id="name" required="required">
-            </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-primary" name="submit">Criar Dispositivo</button>
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-        </div>
-        </form>
+</div>
+
+<!-- Form new device-->
+<div class="modal fade" id="newDevice" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Novo Dispositivo</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
+      <div class="modal-body">
+        <form method="post" action="{% url 'gnss_iot:new_device' %}" class="form-signin">
+          <div class="form-group">
+            {% csrf_token %}
+            <label for="name" class="col-form-label">Nome:</label>
+            <input type="text" class="form-control" name="name" id="name" required="required">
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" name="submit">Criar Dispositivo</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+      </div>
+      </form>
     </div>
   </div>
-  <!-- End Form new device-->
+</div>
+<!-- End Form new device-->
 
 {% endblock content %}
+
+{% block script %}
+
+<script>
+
+  $(document).ready(function () {
+    $('.modal').modal();
+  });
+
+</script>
+
+{% endblock script %}

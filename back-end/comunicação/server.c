@@ -16,9 +16,9 @@
 #define ACESSO_PERMITIDO 1
 #define SERVIDOR 2
 
-#define MAX_CLIENT 10
-#define MAX_DEVICE 10
-#define BUFFER_SIZE 1024
+#define MAX_CLIENT 50
+#define MAX_DEVICE 50
+#define BUFFER_SIZE 32
 
 #define TRUE 1
 #define FALSE 0
@@ -26,7 +26,7 @@
 
 typedef struct
 {
-    char token[32];
+    char token[BUFFER_SIZE];
     int file_description;
     double coord[2];
 
@@ -45,11 +45,13 @@ struct string
     size_t len;
 };
 
-size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s);
 void init_string(struct string *s);
+size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s);
 int request(char *token_recebido);
 int token_check(char *token_recebido, int len);
 binn *serialize_device(device_t *device);
+binn *serialize_server(device_t *device);
+binn *serialize_web();
 void settings_socket(struct sockaddr_in *address, int *master_socket);
 void bind_socket(struct sockaddr_in *address, int *master_socket);
 void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen);
@@ -120,7 +122,7 @@ int request(char *token_recebido)
 int token_check(char *token_recebido, int len)
 {
 
-    if (!(strcmp("TOKENSERVIDOR", token_recebido)))
+    if (!(strncmp("TOKENSERVIDOR", token_recebido, len)))
         return SERVIDOR;
     else if (request(token_recebido))
         return ACESSO_PERMITIDO;
@@ -130,14 +132,14 @@ int token_check(char *token_recebido, int len)
 
 binn *serialize_device(device_t *device)
 {
-    binn *coord;
+    binn *data;
 
-    coord = binn_list();
-    binn_list_add_double(coord, device->coord[0]);
-    binn_list_add_double(coord, device->coord[1]);
-    binn_list_add_str(coord, device->token);
+    data = binn_list();
+    binn_list_add_double(data, device->coord[0]);
+    binn_list_add_double(data, device->coord[1]);
+    binn_list_add_str(data, device->token);
 
-    return coord;
+    return data;
 }
 
 binn *serialize_server(device_t *device)
@@ -235,22 +237,18 @@ void listen_socket(struct sockaddr_in *address, int *master_socket, int *addrlen
 void web_connection(int sock, client_t *clientes)
 {
     int i, j, x = 1;
-    int quantidade;
     binn *data_web;
     data_web = serialize_web();
-    binn_iter iter;
-    binn value;
     if ((read(sock, binn_ptr(data_web), binn_size(data_web))) != 0)
     {
+
         for (j = 0; j < MAX_CLIENT; j++)
         {
             if (clientes[j].file_description == 0)
             {
                 clientes[j].file_description = sock;
-
-                while (strcmp(binn_list_str(data_web, x), "none") != 0)
+                while (strcmp(binn_list_str(data_web, x), "null"))
                 {
-
                     for (i = 0; i < MAX_DEVICE; i++)
                     {
                         if (strcmp(clientes[j].device[i].token, "false") == 0)
@@ -281,21 +279,17 @@ void web_connection(int sock, client_t *clientes)
     binn_free(data_web);
 }
 
-int main(int argc, char *argv[])
-{
-    int master_socket = 0, addrlen = 0, new_socket = 0;
-    int activity = 0, i = 0, j = 0, k = 0, valread = 0, sd = 0, max_sd = 0;
-    int x = 0;
+int main(int argc, char *argv[]){
+    int master_socket, addrlen, new_socket;
+    int activity, i, j, k, valread, sd, max_sd, x;
 
     int client_socket[MAX_CLIENT];
-
     char buffer[BUFFER_SIZE];
 
     struct sockaddr_in address;
 
-    device_t devices[MAX_DEVICE];
     client_t clientes[MAX_CLIENT];
-
+    device_t devices[MAX_DEVICE];
     binn *data_device, *data_server;
 
     /*set of socket descriptors*/
@@ -373,7 +367,6 @@ int main(int argc, char *argv[])
             {
 
                 buffer[valread] = '\0';
-
                 switch (token_check(buffer, valread))
                 {
 
@@ -432,10 +425,11 @@ int main(int argc, char *argv[])
 
                     devices[i].coord[0] = binn_list_double(data_device, 1);
                     devices[i].coord[1] = binn_list_double(data_device, 2);
-                    devices[i].coord[0] = 0.0001 + devices[i].coord[0];
-                    devices[i].coord[1] = 0.0001 + devices[i].coord[1];
+                    devices[i].coord[0] = 0.001 + devices[i].coord[0];
+                    devices[i].coord[1] = 0.001 + devices[i].coord[1];
                     printf("%lf %lf\n", devices[i].coord[0], devices[i].coord[1]);
-                    printf("%s\n", devices[i].token);
+                    printf("%s\n", binn_list_str(data_device, 3));
+                
                     data_device = serialize_device(&devices[i]);
 
                     for (j = 0; j < MAX_CLIENT; j++)

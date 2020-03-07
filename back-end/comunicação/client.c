@@ -10,13 +10,14 @@
 #define ACESSO_NEGADO 0
 
 #define PORT 8888
+#define BUFFER_SIZE 32
 
 typedef struct
 {
-    char *token;
+    char token[BUFFER_SIZE];
     int file_description;
-    int autenticacao;
     double coord[2];
+
 } device_t;
 
 binn *serialize(device_t *device)
@@ -39,7 +40,7 @@ int main(int argc, char const *argv[])
 
     device_t device;
 
-    strcpy(device.token,"975F55D739371738148AC542ACD88F36");
+    strcpy(device.token, "5192E6266BD065EB82D5C8EE53891AA0");
 
     device.coord[0] = -15.765940453;
     device.coord[1] = -47.872187540;
@@ -82,7 +83,6 @@ int main(int argc, char const *argv[])
         device.coord[0] = binn_list_double(data, 1);
         device.coord[1] = binn_list_double(data, 2);
         printf("%lf %lf\n", device.coord[0], device.coord[1]);
-
         sleep(1);
     }
 
